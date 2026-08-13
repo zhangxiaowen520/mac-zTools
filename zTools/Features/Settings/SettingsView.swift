@@ -13,12 +13,12 @@ enum SettingsTab: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .general: "通用"
-        case .screenshot: "截图"
-        case .ai: "AI 翻译"
-        case .shortcuts: "快捷键"
-        case .permissions: "权限"
-        case .about: "关于"
+        case .general: String(localized: "通用")
+        case .screenshot: String(localized: "截图")
+        case .ai: String(localized: "AI 翻译")
+        case .shortcuts: String(localized: "快捷键")
+        case .permissions: String(localized: "权限")
+        case .about: String(localized: "关于")
         }
     }
 

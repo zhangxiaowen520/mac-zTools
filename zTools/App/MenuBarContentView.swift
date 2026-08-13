@@ -60,13 +60,13 @@ struct MenuBarContentView: View {
     private func hotkeyButton(_ title: String, _ id: SettingsStore.HotKeyID, action: @escaping () -> Void) -> some View {
         let chord = settings.hotKey(for: id)
         if let chord, let ch = chord.keyEquivalentCharacter {
-            Button(title, action: action)
+            Button(LocalizedStringKey(title), action: action)
                 .keyboardShortcut(KeyEquivalent(ch), modifiers: chord.eventModifiers)
         } else if let chord {
             // Non-printable key: show in title so user still sees it
-            Button("\(title)    \(chord.displayString)", action: action)
+            Button(LocalizedStringKey("\(title)    \(chord.displayString)"), action: action)
         } else {
-            Button(title, action: action)
+            Button(LocalizedStringKey(title), action: action)
         }
     }
 }

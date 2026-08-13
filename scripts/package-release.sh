@@ -6,7 +6,7 @@ if [[ -z "${DEVELOPER_DIR:-}" || ! -d "${DEVELOPER_DIR:-}" ]]; then
   for candidate in \
     "/Applications/Xcode-beta.app/Contents/Developer" \
     "/Applications/Xcode.app/Contents/Developer" \
-    "/Users/zeno/Downloads/Xcode-beta.app/Contents/Developer"
+    "$HOME/Downloads/Xcode-beta.app/Contents/Developer"
   do
     if [[ -d "$candidate" ]]; then
       export DEVELOPER_DIR="$candidate"

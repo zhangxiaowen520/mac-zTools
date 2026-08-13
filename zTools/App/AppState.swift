@@ -440,21 +440,21 @@ enum ToolAction: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .screenshot: "截图"
-        case .screenshotFullscreen: "全屏截图"
-        case .screenshotDelay: "延时全屏"
-        case .screenshotWindow: "光标下窗口"
-        case .screenshotLastRegion: "上次区域"
-        case .screenshotPreset: "预设尺寸"
-        case .ocr: "OCR"
-        case .clipboard: "剪贴板"
-        case .translate: "翻译"
-        case .timestamp: "时间戳"
-        case .colorPicker: "取色"
-        case .settings: "设置"
-        case .toggleFloatingBall: "悬浮球"
-        case .commandPalette: "命令面板"
-        case .selectionTranslate: "划词翻译"
+        case .screenshot: String(localized: "截图")
+        case .screenshotFullscreen: String(localized: "全屏截图")
+        case .screenshotDelay: String(localized: "延时全屏")
+        case .screenshotWindow: String(localized: "光标下窗口")
+        case .screenshotLastRegion: String(localized: "上次区域")
+        case .screenshotPreset: String(localized: "预设尺寸")
+        case .ocr: String(localized: "OCR")
+        case .clipboard: String(localized: "剪贴板")
+        case .translate: String(localized: "翻译")
+        case .timestamp: String(localized: "时间戳")
+        case .colorPicker: String(localized: "取色")
+        case .settings: String(localized: "设置")
+        case .toggleFloatingBall: String(localized: "悬浮球")
+        case .commandPalette: String(localized: "命令面板")
+        case .selectionTranslate: String(localized: "划词翻译")
         }
     }
 

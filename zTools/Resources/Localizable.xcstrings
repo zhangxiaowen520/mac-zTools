@@ -9,6 +9,7 @@
     "预设尺寸" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Preset Size" } } } },
     "OCR" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "OCR" } } } },
     "剪贴板" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Clipboard" } } } },
+    "笔记" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Note" } } } },
     "翻译" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Translate" } } } },
     "时间戳" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Timestamp" } } } },
     "取色" : { "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Color Picker" } } } },

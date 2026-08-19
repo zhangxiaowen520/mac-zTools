@@ -144,7 +144,7 @@ private struct CommandPaletteView: View {
         let q = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         var result: [Row] = []
 
-        let actions: [ToolAction] = [.screenshot, .ocr, .clipboard, .translate, .timestamp, .colorPicker]
+        let actions: [ToolAction] = [.screenshot, .ocr, .clipboard, .note, .translate, .timestamp, .colorPicker]
         for action in actions {
             if q.isEmpty || action.title.lowercased().contains(q) || action.rawValue.contains(q) {
                 result.append(Row(

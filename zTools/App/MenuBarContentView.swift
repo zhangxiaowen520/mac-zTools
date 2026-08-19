@@ -20,6 +20,7 @@ struct MenuBarContentView: View {
 
         hotkeyButton("OCR 识别", .ocr) { appState.handle(.ocr) }
         hotkeyButton("剪贴板历史", .clipboard) { appState.handle(.clipboard) }
+        hotkeyButton("笔记", .note) { appState.handle(.note) }
         hotkeyButton("翻译", .translate) { appState.handle(.translate) }
         hotkeyButton("时间戳", .timestamp) { appState.handle(.timestamp) }
         hotkeyButton("取色", .colorPicker) { appState.handle(.colorPicker) }

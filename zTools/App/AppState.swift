@@ -25,6 +25,7 @@ final class AppState: ObservableObject {
     let ocrService = OCRService()
     let colorPickerService = ColorPickerService()
     let translateService = TranslateService()
+    let noteStore = NoteStore()
 
     private var cancellables = Set<AnyCancellable>()
     private var ownBundleID: String? { Bundle.main.bundleIdentifier }
@@ -99,6 +100,7 @@ final class AppState: ObservableObject {
         hotKeyManager.unregisterAll()
         pasteboardMonitor.stop()
         clipboardStore.flush()
+        noteStore.flush()
         floatingBall.hide()
         panelController.close()
         CommandPaletteController.shared.close()
@@ -108,7 +110,7 @@ final class AppState: ObservableObject {
     func handle(_ action: ToolAction) {
         // Capture previous app before any UI that steals focus
         switch action {
-        case .clipboard, .translate, .timestamp, .commandPalette, .selectionTranslate, .settings:
+        case .clipboard, .translate, .timestamp, .note, .commandPalette, .selectionTranslate, .settings:
             capturePreviousApp()
         default:
             break
@@ -136,6 +138,8 @@ final class AppState: ObservableObject {
             pendingTranslateText = ""
         case .timestamp:
             openPanel(.timestamp, title: "时间戳")
+        case .note:
+            openPanel(.note, title: "笔记")
         case .colorPicker:
             pickColor()
         case .settings:
@@ -224,6 +228,8 @@ final class AppState: ObservableObject {
             view = AnyView(TranslateView().environmentObject(self))
         case .timestamp:
             view = AnyView(TimestampView())
+        case .note:
+            view = AnyView(NoteView().environmentObject(self))
         case .settings:
             view = AnyView(SettingsView().environmentObject(self))
         }
@@ -430,6 +436,7 @@ enum ToolAction: String, CaseIterable, Identifiable {
     case clipboard
     case translate
     case timestamp
+    case note
     case colorPicker
     case settings
     case toggleFloatingBall
@@ -450,6 +457,7 @@ enum ToolAction: String, CaseIterable, Identifiable {
         case .clipboard: String(localized: "剪贴板")
         case .translate: String(localized: "翻译")
         case .timestamp: String(localized: "时间戳")
+        case .note: String(localized: "笔记")
         case .colorPicker: String(localized: "取色")
         case .settings: String(localized: "设置")
         case .toggleFloatingBall: String(localized: "悬浮球")
@@ -470,6 +478,7 @@ enum ToolAction: String, CaseIterable, Identifiable {
         case .clipboard: "clipboard"
         case .translate: "globe"
         case .timestamp: "clock.arrow.circlepath"
+        case .note: "note.text"
         case .colorPicker: "eyedropper"
         case .settings: "gearshape"
         case .toggleFloatingBall: "circle.dashed"
@@ -479,18 +488,19 @@ enum ToolAction: String, CaseIterable, Identifiable {
     }
 
     static var launcherItems: [ToolAction] {
-        [.screenshot, .ocr, .clipboard, .translate, .timestamp, .colorPicker]
+        [.screenshot, .ocr, .clipboard, .note, .translate, .timestamp, .colorPicker]
     }
 }
 
 enum ToolPanelKind {
-    case clipboard, translate, timestamp, settings
+    case clipboard, translate, timestamp, note, settings
 
     var preferredSize: CGSize {
         switch self {
         case .clipboard: CGSize(width: 420, height: 540)
         case .translate: CGSize(width: 460, height: 500)
         case .timestamp: CGSize(width: 400, height: 520)
+        case .note: CGSize(width: 420, height: 540)
         case .settings: CGSize(width: 520, height: 480)
         }
     }

@@ -6,7 +6,7 @@ final class SettingsStore: ObservableObject {
     enum HotKeyID: String, CaseIterable, Identifiable {
         case screenshot
         case screenshotFullscreen, screenshotDelay, screenshotWindow, screenshotLastRegion, screenshotPreset
-        case ocr, clipboard, translate, timestamp, colorPicker, toggleBall
+        case ocr, clipboard, translate, timestamp, note, colorPicker, toggleBall
         case commandPalette, selectionTranslate
 
         var id: String { rawValue }
@@ -23,6 +23,7 @@ final class SettingsStore: ObservableObject {
             case .clipboard: String(localized: "剪贴板")
             case .translate: String(localized: "翻译")
             case .timestamp: String(localized: "时间戳")
+            case .note: String(localized: "笔记")
             case .colorPicker: String(localized: "取色")
             case .toggleBall: String(localized: "显示/隐藏悬浮球")
             case .commandPalette: String(localized: "命令面板")
@@ -47,6 +48,7 @@ final class SettingsStore: ObservableObject {
             case "clipboard": return .clipboard
             case "translate": return .translate
             case "timestamp": return .timestamp
+            case "note": return .note
             case "colorPicker": return .colorPicker
             case "toggleFloatingBall": return .toggleBall
             case "commandPalette": return .commandPalette
@@ -213,7 +215,7 @@ final class SettingsStore: ObservableObject {
     }
 
     /// 递增后会在下次启动用新默认快捷键覆盖旧方案
-    private static let currentHotKeysScheme = 3
+    private static let currentHotKeysScheme = 4
 
     private func saveHotKeys() {
         let encoded = hotKeys.mapValues { $0.storageValue }
@@ -246,6 +248,7 @@ final class SettingsStore: ObservableObject {
             HotKeyID.clipboard.rawValue: KeyChord(keyCode: 9, modifiers: [.option]), // ⌥V
             HotKeyID.translate.rawValue: KeyChord(keyCode: 17, modifiers: [.option]), // ⌥T
             HotKeyID.timestamp.rawValue: KeyChord(keyCode: 32, modifiers: [.option]), // ⌥U
+            HotKeyID.note.rawValue: KeyChord(keyCode: 45, modifiers: [.option]), // ⌥N
             HotKeyID.colorPicker.rawValue: KeyChord(keyCode: 8, modifiers: [.option]), // ⌥C
             HotKeyID.toggleBall.rawValue: KeyChord(keyCode: 11, modifiers: [.option]), // ⌥B 悬浮球
             HotKeyID.commandPalette.rawValue: KeyChord(keyCode: 40, modifiers: [.option]), // ⌥K

@@ -52,6 +52,8 @@ enum URLRouter {
             }
         case "timestamp", "time":
             state.handle(.timestamp)
+        case "note", "notes":
+            state.handle(.note)
         case "color", "eyedropper", "pick-color":
             state.handle(.colorPicker)
         case "palette", "command":

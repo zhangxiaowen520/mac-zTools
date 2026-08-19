@@ -96,6 +96,10 @@ final class SettingsStore: ObservableObject {
         didSet { defaults.set(screenshotSaveDirectory, forKey: Keys.screenshotSaveDirectory) }
     }
 
+    @Published var notesDirectory: String {
+        didSet { defaults.set(notesDirectory, forKey: Keys.notesDirectory) }
+    }
+
     @Published var openFinderAfterSave: Bool {
         didSet { defaults.set(openFinderAfterSave, forKey: Keys.openFinderAfterSave) }
     }
@@ -145,6 +149,12 @@ final class SettingsStore: ObservableObject {
             screenshotSaveDirectory = Self.defaultSaveDirectory.path
         }
 
+        if let saved = defaults.string(forKey: Keys.notesDirectory), !saved.isEmpty {
+            notesDirectory = saved
+        } else {
+            notesDirectory = Self.defaultNotesDirectory.path
+        }
+
         // 快捷键方案版本：变更默认布局时递增，自动套用新默认
         // 注意：init 内赋值不会触发 didSet，必须在全部属性初始化后手动写入 UserDefaults
         let scheme = defaults.integer(forKey: Keys.hotKeysScheme)
@@ -168,6 +178,10 @@ final class SettingsStore: ObservableObject {
 
     var screenshotSaveDirectoryURL: URL {
         URL(fileURLWithPath: screenshotSaveDirectory, isDirectory: true)
+    }
+
+    var notesDirectoryURL: URL {
+        URL(fileURLWithPath: notesDirectory, isDirectory: true)
     }
 
     func defaultScreenshotFileURL() -> URL {
@@ -262,6 +276,12 @@ final class SettingsStore: ObservableObject {
         return pictures.appendingPathComponent("zTools", isDirectory: true)
     }
 
+    static var defaultNotesDirectory: URL {
+        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+            ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Documents")
+        return docs.appendingPathComponent("zTools Notes", isDirectory: true)
+    }
+
     private enum Keys {
         static let showFloatingBall = "settings.showFloatingBall"
         static let floatingBallSize = "settings.floatingBallSize"
@@ -271,6 +291,7 @@ final class SettingsStore: ObservableObject {
         static let clipboardLimit = "settings.clipboardLimit"
         static let launchAtLogin = "settings.launchAtLogin"
         static let screenshotSaveDirectory = "settings.screenshotSaveDirectory"
+        static let notesDirectory = "settings.notesDirectory"
         static let openFinderAfterSave = "settings.openFinderAfterSave"
         static let copyAfterSave = "settings.copyAfterSave"
         static let aiBaseURL = "settings.aiBaseURL"

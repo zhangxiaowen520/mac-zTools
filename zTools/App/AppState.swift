@@ -25,7 +25,7 @@ final class AppState: ObservableObject {
     let ocrService = OCRService()
     let colorPickerService = ColorPickerService()
     let translateService = TranslateService()
-    let noteStore = NoteStore()
+    let noteStore: NoteStore
 
     private var cancellables = Set<AnyCancellable>()
     private var ownBundleID: String? { Bundle.main.bundleIdentifier }
@@ -34,6 +34,7 @@ final class AppState: ObservableObject {
         let settings = SettingsStore()
         self.settings = settings
         self.clipboardStore = ClipboardStore(limit: settings.clipboardLimit)
+        self.noteStore = NoteStore(directory: settings.notesDirectoryURL)
         self.showFloatingBall = settings.showFloatingBall
     }
 
@@ -500,7 +501,7 @@ enum ToolPanelKind {
         case .clipboard: CGSize(width: 420, height: 540)
         case .translate: CGSize(width: 460, height: 500)
         case .timestamp: CGSize(width: 400, height: 520)
-        case .note: CGSize(width: 420, height: 540)
+        case .note: CGSize(width: 640, height: 560)
         case .settings: CGSize(width: 520, height: 480)
         }
     }

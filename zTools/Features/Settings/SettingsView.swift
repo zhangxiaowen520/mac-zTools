@@ -103,6 +103,30 @@ struct SettingsView: View {
                     appState.floatingBall.updateSize(size)
                 }
             }
+            Section("笔记") {
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Markdown 目录")
+                        Text(settings.notesDirectory)
+                            .font(.system(size: 11, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .textSelection(.enabled)
+                    }
+                    Spacer()
+                    Button("选择…") { pickNotesDirectory() }
+                    Button("还原") {
+                        settings.notesDirectory = SettingsStore.defaultNotesDirectory.path
+                        appState.noteStore.setDirectory(settings.notesDirectoryURL)
+                    }
+                    Button("打开") {
+                        NSWorkspace.shared.open(settings.notesDirectoryURL)
+                    }
+                }
+                Text("每篇笔记是一个 .md 文件。可指向已有 Markdown 文件夹。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
             Section("剪贴板") {
                 Stepper(value: $settings.clipboardLimit, in: 20...300, step: 10) {
                     Text("历史条数：\(settings.clipboardLimit)")
@@ -591,6 +615,23 @@ struct SettingsView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .font(.callout)
+    }
+
+    private func pickNotesDirectory() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.canCreateDirectories = true
+        panel.directoryURL = settings.notesDirectoryURL
+        panel.prompt = "选择"
+        panel.begin { response in
+            guard response == .OK, let url = panel.url else { return }
+            Task { @MainActor in
+                settings.notesDirectory = url.path
+                appState.noteStore.setDirectory(url)
+            }
+        }
     }
 
     private func pickSaveDirectory() {

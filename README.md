@@ -1,6 +1,6 @@
 # zTools
 
-macOS 菜单栏 + 悬浮球效率工具：截图、OCR、剪贴板、AI 翻译、时间戳、取色。
+macOS 菜单栏 + 悬浮球效率工具：截图、OCR、剪贴板、笔记、AI 翻译、时间戳、取色。
 
 > 原生 SwiftUI + AppKit · 最低 **macOS 15+** · Bundle ID `com.zeno.ztools`
 
@@ -15,6 +15,7 @@ macOS 菜单栏 + 悬浮球效率工具：截图、OCR、剪贴板、AI 翻译�
 | **剪贴板** | 文本/图片历史、来源 App、置顶、搜索、⌘1–9 快贴、预览、一键翻译；敏感内容启发式跳过 |
 | **翻译** | OpenAI 兼容 API（默认 DeepSeek）；划词翻译；连通性测试 |
 | **时间戳** | Unix 秒/毫秒、多时区、代码片段（Swift/JS/Python…） |
+| **笔记** | Markdown 文件（.md）；可配置目录；列表/搜索/置顶/预览；⌥N |
 | **取色** | 系统取色器；HEX/RGB/HSL/CSS/SwiftUI/UIColor；历史色板 |
 
 ---
@@ -37,6 +38,7 @@ macOS 菜单栏 + 悬浮球效率工具：截图、OCR、剪贴板、AI 翻译�
 | 上次区域 | ⌥X | 取色 | ⌥C |
 | 预设尺寸 | ⌥G | 悬浮球 | ⌥B |
 | 命令面板 | ⌥K | 划词翻译 | ⌥E |
+| 笔记 | ⌥N | | |
 
 可在 **设置 → 快捷键** 中修改或「恢复默认」。
 
@@ -172,7 +174,7 @@ mac-tools/
 
 - 版本号见 `zTools/Info.plist`  
 - 更新日志见应用内 **设置 → 关于**（`AppVersionInfo.changelog`）  
-- 当前主线：**0.5.x**（截图模式矩阵与选区体验对标 iShot）
+- 当前主线：**0.6.x**（笔记 Markdown + 截图体验打磨）
 
 ---
 

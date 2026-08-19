@@ -1,6 +1,7 @@
 build/
 DerivedData/
 dist/
+scripts/dmg/*.png
 *.xcuserstate
 xcuserdata/
 .DS_Store

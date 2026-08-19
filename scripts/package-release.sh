@@ -67,59 +67,88 @@ codesign --force --deep --sign - \
 codesign --verify --verbose=2 "$STAGE/$APP_NAME" 2>&1 | sed -n '1,15p' || true
 echo "DR: $(codesign -d -r- "$STAGE/$APP_NAME" 2>&1 | grep designated || true)"
 
-cat > "$STAGE/安装说明.txt" <<EOF
-zTools ${VERSION} (build ${BUILD})
-================================
-
-【安装步骤】
-1. 打开本 DMG
-2. 将 zTools.app 拖到「应用程序」(Applications) 文件夹
-   （推荐：/Applications 或 ~/Applications）
-3. 首次打开：若提示「无法验证开发者」——
-   · 方法 A：在 Finder 中对 zTools.app 点右键 →「打开」→ 再点「打开」
-   · 方法 B：终端执行：
-       xattr -cr /Applications/zTools.app
-       open /Applications/zTools.app
-4. 首次截图时，在系统弹窗中允许「屏幕录制」
-5. 若需要剪贴板粘贴 / 划词翻译，请在
-   系统设置 → 隐私与安全性 → 辅助功能 中打开 zTools
-
-【权限异常（开关已开仍失败）】
-1. 确认只运行一份 zTools（不要用下载目录里的临时副本）
-2. 系统设置 → 录屏 / 辅助功能：删除全部旧 zTools
-3. 重新添加「应用程序」里的 zTools.app 并打开开关
-4. 完全退出 zTools 后再打开
-
-【翻译】
-设置 → AI 翻译：填写 DeepSeek 等 OpenAI 兼容接口的 API Key
-
-【URL 唤起示例】
-  open 'ztools://screenshot'
-  open 'ztools://fullscreen'
-  open 'ztools://translate?text=hello'
-  open 'ztools://palette'
-
-【架构】
-当前包主要为 Apple Silicon (arm64)。
-Intel Mac 请联系发布者索取通用/ x86_64 构建。
-
-【签名说明】
-本包为本地 ad-hoc 签名（未使用 Apple Developer ID 公证）。
-分发给熟人可用；若需 App Store / 无警告分发，需 Developer ID + 公证。
-
-Copyright © 2026 zeno
-EOF
-
-# 拖放安装体验
+# 标准拖放安装：app + Applications 快捷方式；说明放到卷根隐藏区外
 ln -sf /Applications "$STAGE/Applications"
 
-echo "==> Creating DMG..."
+BG_SRC="$ROOT/scripts/dmg/background.png"
+if [[ ! -f "$BG_SRC" ]]; then
+  echo "==> Generating DMG background..."
+  xcrun swift "$ROOT/scripts/generate-dmg-background.swift" "$BG_SRC"
+fi
+mkdir -p "$STAGE/.background"
+cp "$BG_SRC" "$STAGE/.background/background.png"
+
+VOL_NAME="zTools"
+RW_DMG="$OUT_DIR/.tmp-ztools.dmg"
+rm -f "$RW_DMG"
+
+echo "==> Creating install DMG..."
 hdiutil create \
-  -volname "zTools ${VERSION}" \
+  -volname "$VOL_NAME" \
   -srcfolder "$STAGE" \
-  -ov -format UDZO \
+  -ov -format UDRW \
   -fs HFS+ \
-  "$OUT_DIR/$DMG_NAME"
+  -fsargs "-c c=64,a=16,e=16" \
+  "$RW_DMG" >/dev/null
+
+MOUNT_DIR="/Volumes/${VOL_NAME}"
+if [[ -d "$MOUNT_DIR" ]]; then
+  hdiutil detach "$MOUNT_DIR" -quiet 2>/dev/null || true
+  sleep 0.4
+fi
+
+echo "==> Mounting and styling Finder window..."
+DEVICE=$(hdiutil attach -readwrite -noverify -noautoopen "$RW_DMG" | awk '/\/dev\// { print $1; exit }')
+for i in {1..40}; do
+  [[ -d "$MOUNT_DIR" ]] && break
+  sleep 0.15
+done
+if [[ ! -d "$MOUNT_DIR" ]]; then
+  echo "ERROR: 无法挂载 $RW_DMG"
+  exit 1
+fi
+
+# 隐藏背景文件夹
+if command -v SetFile >/dev/null 2>&1; then
+  SetFile -a V "$MOUNT_DIR/.background" 2>/dev/null || true
+fi
+chflags hidden "$MOUNT_DIR/.background" 2>/dev/null || true
+
+if ! osascript <<EOF
+tell application "Finder"
+  tell disk "$VOL_NAME"
+    open
+    set current view of container window to icon view
+    set toolbar visible of container window to false
+    set statusbar visible of container window to false
+    set sidebar width of container window to 0
+    set the bounds of container window to {420, 180, 1080, 600}
+    set opts to the icon view options of container window
+    set arrangement of opts to not arranged
+    set icon size of opts to 128
+    set text size of opts to 13
+    set background picture of opts to file ".background:background.png"
+    set position of item "$APP_NAME" of container window to {160, 188}
+    set position of item "Applications" of container window to {500, 188}
+    close
+    open
+    update without registering applications
+    delay 1.2
+  end tell
+end tell
+EOF
+then
+  echo "WARN: Finder 窗口样式未写入（可稍后手动打开 DMG 检查）。仍继续压缩。"
+fi
+
+sync
+hdiutil detach "$DEVICE" -quiet || hdiutil detach "$MOUNT_DIR" -force -quiet
+sleep 0.5
+
+echo "==> Compressing DMG..."
+rm -f "$OUT_DIR/$DMG_NAME"
+hdiutil convert "$RW_DMG" -format UDZO -imagekey zlib-level=9 -o "$OUT_DIR/$DMG_NAME" >/dev/null
+rm -f "$RW_DMG"
 
 echo "==> Creating ZIP (备用)..."
 (

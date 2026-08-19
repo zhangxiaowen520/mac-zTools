@@ -2,11 +2,11 @@ import Foundation
 
 enum AppVersionInfo {
     static var shortVersion: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.5.0"
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.6.0"
     }
 
     static var build: String {
-        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "5"
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "6"
     }
 
     static var displayVersion: String {
@@ -18,6 +18,17 @@ enum AppVersionInfo {
     static let copyright = "Copyright © 2026 zeno. All rights reserved."
 
     static let changelog: [(version: String, date: String, items: [String])] = [
+        (
+            "0.6.0",
+            "2026-08-19",
+            [
+                "笔记：Markdown 文件存储，可配置目录，预览/编辑/置顶",
+                "快捷键冲突检测；截图编辑草稿可续编",
+                "OCR/取色隐藏悬浮球；多显示器坐标修正",
+                "剪贴板图片独立落盘；选区窗口查询节流",
+                "String Catalog 英文 locale；单元测试"
+            ]
+        ),
         (
             "0.5.0",
             "2026-08-10",

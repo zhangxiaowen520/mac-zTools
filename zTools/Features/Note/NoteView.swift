@@ -60,16 +60,7 @@ struct NoteView: View {
 
     private var toolbar: some View {
         HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(.secondary)
-            TextField("搜索 Markdown…", text: $query)
-                .textFieldStyle(.plain)
-            if !query.isEmpty {
-                Button { query = "" } label: {
-                    Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
-            }
+            ZSearchField(placeholder: "搜索 Markdown…", text: $query)
             Spacer(minLength: 8)
             Button {
                 showPreview.toggle()
@@ -80,12 +71,10 @@ struct NoteView: View {
             .help(showPreview ? "编辑" : "预览 Markdown")
             .disabled(selected == nil)
 
-            Button("新建") { createNote() }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.small)
+            ZPrimaryButton(title: "新建") { createNote() }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.horizontal, ZTheme.pad)
+        .padding(.vertical, 12)
     }
 
     private var noteList: some View {
@@ -116,7 +105,8 @@ struct NoteView: View {
                             }
                     }
                 }
-                .listStyle(.sidebar)
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
             }
         }
     }
@@ -131,13 +121,13 @@ struct NoteView: View {
                 ScrollView {
                     markdownPreview(editorText)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(14)
+                        .padding(ZTheme.pad)
                 }
             } else {
                 TextEditor(text: $editorText)
                     .font(.system(size: 13, design: .monospaced))
                     .scrollContentBackground(.hidden)
-                    .padding(8)
+                    .padding(ZTheme.pad)
                     .focused($editorFocused)
                     .onChange(of: editorText) { _, newValue in
                         guard let note = selected else { return }
@@ -162,8 +152,8 @@ struct NoteView: View {
             .font(.caption)
             .buttonStyle(.borderless)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 8)
+        .padding(.horizontal, ZTheme.pad)
+        .padding(.vertical, 10)
     }
 
     @ViewBuilder
@@ -238,7 +228,7 @@ private struct NoteRow: View {
             if note.pinned {
                 Image(systemName: "pin.fill")
                     .font(.caption2)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(ZTheme.accent)
             }
         }
         .padding(.vertical, 3)

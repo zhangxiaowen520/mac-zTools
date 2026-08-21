@@ -23,32 +23,21 @@ struct ClipboardView: View {
         }
     }
 
+    private var pinnedItems: [ClipboardItem] { filtered.filter(\.pinned) }
+    private var historyItems: [ClipboardItem] { filtered.filter { !$0.pinned } }
+
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(.secondary)
-                TextField("搜索剪贴板", text: $query)
-                    .textFieldStyle(.plain)
-                    .onSubmit { pasteSelected() }
-                if !query.isEmpty {
-                    Button { query = "" } label: {
-                        Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(10)
-            .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-            .padding(.horizontal, 14)
-            .padding(.bottom, 8)
+            ZSearchField(placeholder: "搜索剪贴板", text: $query, onSubmit: pasteSelected)
+                .padding(.horizontal, ZTheme.pad)
+                .padding(.bottom, 8)
 
             Text("↑↓ 选择 · ↩ 粘贴 · ⌘1-9 快贴 · ⌘T 翻译")
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 16)
-                .padding(.bottom, 6)
+                .padding(.horizontal, 18)
+                .padding(.bottom, 8)
 
             if filtered.isEmpty {
                 VStack(spacing: 8) {
@@ -62,28 +51,23 @@ struct ClipboardView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 List(selection: $selectedID) {
-                    ForEach(Array(filtered.enumerated()), id: \.element.id) { index, item in
-                        ClipboardRow(
-                            item: item,
-                            index: index,
-                            isSelected: selectedID == item.id
-                        ) {
-                            store.paste(item)
-                            appState.panelController.close()
-                        } onPin: {
-                            store.togglePin(item)
-                        } onCopy: {
-                            copy(item)
-                        } onDelete: {
-                            store.remove(item)
-                            if selectedID == item.id { selectedID = filtered.first?.id }
-                        } onTranslate: {
-                            translate(item)
-                        } onPreview: {
-                            previewItem = item
+                    if !pinnedItems.isEmpty {
+                        Section {
+                            ForEach(pinnedItems) { item in
+                                clipboardRow(item, index: filtered.firstIndex(where: { $0.id == item.id }) ?? 0)
+                            }
+                        } header: {
+                            ZSectionLabel(title: "置顶")
                         }
-                        .tag(item.id)
-                        .listRowInsets(EdgeInsets(top: 3, leading: 8, bottom: 3, trailing: 8))
+                    }
+                    Section {
+                        ForEach(historyItems) { item in
+                            clipboardRow(item, index: filtered.firstIndex(where: { $0.id == item.id }) ?? 0)
+                        }
+                    } header: {
+                        if !pinnedItems.isEmpty {
+                            ZSectionLabel(title: "历史")
+                        }
                     }
                 }
                 .listStyle(.plain)
@@ -107,7 +91,7 @@ struct ClipboardView: View {
                 Button("清空") { store.clear(keepPinned: true) }
                     .font(.caption)
             }
-            .padding(.horizontal, 14)
+            .padding(.horizontal, ZTheme.pad)
             .padding(.vertical, 10)
         }
         .onKeyPress(.return) {
@@ -135,6 +119,30 @@ struct ClipboardView: View {
                 translate(item)
             }
         }
+    }
+
+    private func clipboardRow(_ item: ClipboardItem, index: Int) -> some View {
+        ClipboardRow(
+            item: item,
+            index: index,
+            isSelected: selectedID == item.id
+        ) {
+            store.paste(item)
+            appState.panelController.close()
+        } onPin: {
+            store.togglePin(item)
+        } onCopy: {
+            copy(item)
+        } onDelete: {
+            store.remove(item)
+            if selectedID == item.id { selectedID = filtered.first?.id }
+        } onTranslate: {
+            translate(item)
+        } onPreview: {
+            previewItem = item
+        }
+        .tag(item.id)
+        .listRowInsets(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
     }
 
     /// 隐藏按钮承载 ⌘1-9 / ⌘T
@@ -217,13 +225,13 @@ private struct ClipboardRow: View {
                         Image(nsImage: image)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                            .frame(width: 44, height: 44)
-                            .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                            .frame(width: 40, height: 40)
+                            .clipShape(RoundedRectangle(cornerRadius: ZTheme.radiusChip, style: .continuous))
                     } else {
                         Image(systemName: "doc.text")
                             .foregroundStyle(.secondary)
-                            .frame(width: 44, height: 44)
-                            .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+                            .frame(width: 40, height: 40)
+                            .background(ZTheme.fill, in: RoundedRectangle(cornerRadius: ZTheme.radiusChip, style: .continuous))
                     }
                     if let icon = item.sourceIcon {
                         Image(nsImage: icon)
@@ -236,15 +244,13 @@ private struct ClipboardRow: View {
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(item.preview)
-                        .font(.system(size: 12))
+                        .font(.system(size: 13))
                         .lineLimit(2)
                         .foregroundStyle(.primary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     HStack(spacing: 6) {
                         if index < 9 {
-                            Text("⌘\(index + 1)")
-                                .font(.system(size: 10, design: .monospaced))
-                                .foregroundStyle(.tertiary)
+                            ZKeyCap(text: "⌘\(index + 1)")
                         }
                         if let name = item.sourceAppName {
                             Text(name)
@@ -261,17 +267,17 @@ private struct ClipboardRow: View {
                 if item.pinned {
                     Image(systemName: "pin.fill")
                         .font(.caption2)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(ZTheme.accent)
                 }
             }
-            .padding(8)
+            .padding(10)
             .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(isSelected ? Color.accentColor.opacity(0.14) : Color.primary.opacity(0.03))
+                RoundedRectangle(cornerRadius: ZTheme.radiusControl, style: .continuous)
+                    .fill(isSelected ? ZTheme.selectionFill : ZTheme.fillQuiet)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .strokeBorder(isSelected ? Color.accentColor.opacity(0.35) : Color.clear, lineWidth: 1)
+                RoundedRectangle(cornerRadius: ZTheme.radiusControl, style: .continuous)
+                    .strokeBorder(isSelected ? ZTheme.selectionStroke : Color.clear, lineWidth: 1)
             )
             .contentShape(Rectangle())
         }

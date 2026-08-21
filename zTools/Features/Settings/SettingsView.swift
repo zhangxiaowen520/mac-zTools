@@ -77,8 +77,8 @@ struct SettingsView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .padding(20)
         }
+        .navigationSplitViewStyle(.balanced)
         .navigationTitle("zTools 设置")
         .frame(minWidth: 740, minHeight: 500)
         .task {
@@ -152,7 +152,7 @@ struct SettingsView: View {
                 }
             }
         }
-        .formStyle(.grouped)
+        .settingsPane()
     }
 
     private var islandTab: some View {
@@ -172,7 +172,7 @@ struct SettingsView: View {
                 wingPicker(title: "右侧图标", selection: $settings.islandRightWing)
             }
         }
-        .formStyle(.grouped)
+        .settingsPane()
     }
 
     private func wingPicker(title: String, selection: Binding<IslandWingKind>) -> some View {
@@ -224,6 +224,8 @@ struct SettingsView: View {
             }
             .pickerStyle(.segmented)
             .labelsHidden()
+            .padding(.horizontal, 20)
+            .padding(.top, 12)
 
             Form {
                 switch screenshotSegment {
@@ -320,7 +322,7 @@ struct SettingsView: View {
                     }
                 }
             }
-            .formStyle(.grouped)
+            .settingsPane()
         }
     }
 
@@ -385,7 +387,7 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .formStyle(.grouped)
+        .settingsPane()
     }
 
     private var shortcutsTab: some View {
@@ -419,7 +421,7 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .formStyle(.grouped)
+        .settingsPane()
         // 不要在 onAppear 里 reloadHotKeys：会在视图切换时触发 Carbon 重注册导致闪退
     }
 
@@ -525,17 +527,17 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .formStyle(.grouped)
+        .settingsPane()
     }
 
     private var aboutTab: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 HStack(spacing: 16) {
-                    ZToolsLogoMark(size: 64, showGlow: true)
+                    ZToolsLogoMark(size: 64, showGlow: false)
                     VStack(alignment: .leading, spacing: 6) {
                         Text(AppVersionInfo.productName)
-                            .font(.system(size: 24, weight: .bold, design: .rounded))
+                            .font(.system(size: 24, weight: .bold))
                         Text("截图 · OCR · 剪贴板 · 翻译 · 效率工具")
                             .foregroundStyle(.secondary)
                         Text("版本 \(AppVersionInfo.displayVersion)")
@@ -544,8 +546,7 @@ struct SettingsView: View {
                     }
                     Spacer()
                 }
-                .padding(16)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .padding(.vertical, 8)
 
                 GroupBox("软件信息") {
                     VStack(alignment: .leading, spacing: 8) {
@@ -655,15 +656,16 @@ struct SettingsView: View {
                         Text("./scripts/package-release.sh")
                             .font(.system(size: 12, design: .monospaced))
                             .textSelection(.enabled)
-                        Text("请勿直接运行工程 build/ 目录中的副本，以免录屏权限失效。")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(6)
-                }
-            }
-        }
-    }
+                         Text("请勿直接运行工程 build/ 目录中的副本，以免录屏权限失效。")
+                             .font(.caption)
+                             .foregroundStyle(.secondary)
+                     }
+                     .padding(6)
+                 }
+             }
+             .padding(20)
+         }
+     }
 
     private func repairRow(_ n: Int, _ text: String) -> some View {
         HStack(alignment: .top, spacing: 8) {

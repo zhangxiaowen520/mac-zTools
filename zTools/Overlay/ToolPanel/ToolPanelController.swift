@@ -39,7 +39,7 @@ final class ToolPanelController {
         panel.becomesKeyOnlyIfNeeded = false
         panel.acceptsMouseMovedEvents = true
 
-        let root = ToolPanelChrome(
+        let root = OverlayChrome(
             title: title,
             onClose: { [weak self] in self?.close(restorePreviousApp: true) },
             onDragWindow: { [weak panel] delta in
@@ -59,7 +59,7 @@ final class ToolPanelController {
         panel.contentView = hosting
         panel.setContentSize(size)
         panel.contentView?.wantsLayer = true
-        panel.contentView?.layer?.cornerRadius = 14
+        panel.contentView?.layer?.cornerRadius = ZTheme.radiusCard
         panel.contentView?.layer?.masksToBounds = true
 
         if let screen = NSScreen.main {
@@ -131,84 +131,7 @@ final class ToolPanelController {
     }
 }
 
-struct ToolPanelChrome<Content: View>: View {
-    let title: String
-    let onClose: () -> Void
-    var onDragWindow: ((CGSize) -> Void)? = nil
-    @ViewBuilder let content: Content
-
-    @State private var lastDrag: CGSize = .zero
-
-    var body: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 10) {
-                Button(action: onClose) {
-                    Circle()
-                        .fill(Color(red: 1.0, green: 0.38, blue: 0.35))
-                        .frame(width: 12, height: 12)
-                        .help("关闭 (Esc)")
-                }
-                .buttonStyle(.plain)
-
-                Text(title)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.primary)
-
-                Spacer(minLength: 0)
-
-                Button(action: onClose) {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(.secondary)
-                        .frame(width: 22, height: 22)
-                        .background(Color.primary.opacity(0.08), in: Circle())
-                }
-                .buttonStyle(.plain)
-                .help("关闭 (Esc)")
-            }
-            .padding(.horizontal, 14)
-            .padding(.top, 12)
-            .padding(.bottom, 10)
-            .contentShape(Rectangle())
-            .gesture(
-                DragGesture()
-                    .onChanged { value in
-                        let delta = CGSize(
-                            width: value.translation.width - lastDrag.width,
-                            height: value.translation.height - lastDrag.height
-                        )
-                        lastDrag = value.translation
-                        onDragWindow?(delta)
-                    }
-                    .onEnded { _ in lastDrag = .zero }
-            )
-
-            content
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-        .background {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.ultraThinMaterial)
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(0.22),
-                            Color.white.opacity(0.06),
-                            Color.black.opacity(0.08)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 0.8
-                )
-        )
-        .shadow(color: .black.opacity(0.22), radius: 24, y: 10)
-    }
-}
+typealias ToolPanelChrome = OverlayChrome
 
 @MainActor
 final class ToastController {
@@ -260,12 +183,13 @@ private struct ToastView: View {
     let message: String
     var body: some View {
         Text(message)
-            .font(.system(size: 12, weight: .medium))
+            .font(.system(size: 13, weight: .medium))
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity)
             .background(.ultraThinMaterial, in: Capsule())
-            .overlay(Capsule().strokeBorder(Color.primary.opacity(0.1), lineWidth: 0.5))
+            .overlay(Capsule().strokeBorder(ZTheme.hairline, lineWidth: 0.8))
+            .shadow(color: ZTheme.shadowColor, radius: 16, y: 6)
             .padding(4)
     }
 }

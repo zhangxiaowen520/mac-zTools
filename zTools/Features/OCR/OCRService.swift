@@ -42,30 +42,44 @@ struct OCRResultView: View {
     @State var text: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(spacing: 0) {
             TextEditor(text: $text)
-                .font(.system(size: 13))
+                .font(.system(size: 14))
+                .lineSpacing(4)
                 .scrollContentBackground(.hidden)
-                .padding(8)
-                .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .padding(12)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(
+                    ZTheme.fillQuiet,
+                    in: RoundedRectangle(cornerRadius: ZTheme.radiusControl, style: .continuous)
+                )
+                .padding(.horizontal, ZTheme.pad)
+                .padding(.bottom, 12)
 
-            HStack {
+            HStack(spacing: 12) {
                 Button("复制") {
                     PasteboardUtil.copyString(text)
                     appState.showToast("已复制")
                 }
+                .buttonStyle(.plain)
+                .font(.system(size: 13, weight: .medium))
 
-                Button("翻译") {
-                    appState.openTranslate(text: text)
+                Button("再截") {
+                    appState.panelController.close()
+                    appState.handle(.ocr)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.plain)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(.secondary)
 
                 Spacer()
+
+                ZPrimaryButton(title: "翻译") {
+                    appState.openTranslate(text: text)
+                }
             }
-            .buttonStyle(.bordered)
-            .padding(.horizontal, 14)
-            .padding(.bottom, 14)
+            .padding(.horizontal, ZTheme.pad)
+            .padding(.bottom, ZTheme.pad)
         }
-        .padding(.horizontal, 14)
     }
 }

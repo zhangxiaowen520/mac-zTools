@@ -185,6 +185,7 @@ struct DynamicIslandView: View {
     @StateObject private var apps = InstalledAppStore()
     @StateObject private var stats = IslandStatsStore()
     @State private var progress: CGFloat = 0
+    @Namespace private var tabNS
 
     private var metrics: IslandMetrics { session.metrics }
     private var tabHeight: CGFloat { session.tab.islandHeight }
@@ -304,6 +305,8 @@ struct DynamicIslandView: View {
                 case .stats: statsPanel
                 }
             }
+            .id(session.tab)
+            .transition(tabContentTransition)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
     }
@@ -316,7 +319,7 @@ struct DynamicIslandView: View {
                 tabChip("状态", tab: .stats)
             }
             .padding(3)
-            .background(Capsule(style: .continuous).fill(Color.white.opacity(0.08)))
+            .background(Capsule(style: .continuous).fill(Color.white.opacity(0.10)))
 
             Spacer(minLength: 8)
 
@@ -352,12 +355,14 @@ struct DynamicIslandView: View {
         } label: {
             Text(title)
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(selected ? Color.black : Color.white.opacity(0.55))
+                .foregroundStyle(selected ? Color.white : Color.white.opacity(0.55))
                 .padding(.horizontal, 10)
                 .padding(.vertical, 5)
                 .background {
                     if selected {
-                        Capsule(style: .continuous).fill(Color.white)
+                        Capsule(style: .continuous)
+                            .fill(ZTheme.accent)
+                            .matchedGeometryEffect(id: "islandTabPill", in: tabNS)
                     }
                 }
                 .contentShape(Capsule())
@@ -568,23 +573,8 @@ struct DynamicIslandView: View {
             onSelect(action)
         } label: {
             VStack(spacing: 5) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(Color.white.opacity(0.08))
-                        .frame(width: 40, height: 40)
-                    Image(systemName: action.systemImage)
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [
-                                    Color(red: 0.55, green: 0.45, blue: 1.0),
-                                    Color(red: 0.95, green: 0.35, blue: 0.65)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                }
+                ZIconTile(systemImage: action.systemImage, size: 40)
+                    .colorScheme(.dark)
                 Text(action.title)
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(.white.opacity(0.92))
@@ -606,7 +596,7 @@ struct DynamicIslandView: View {
 
     private var expandAnimation: Animation {
         if reduceMotion { return .easeOut(duration: 0.12) }
-        return .spring(duration: 0.46, bounce: 0.22)
+        return ZTheme.springIsland
     }
 
     private var collapseAnimation: Animation {
@@ -616,7 +606,15 @@ struct DynamicIslandView: View {
 
     private var tabAnimation: Animation {
         if reduceMotion { return .easeOut(duration: 0.12) }
-        return .spring(duration: 0.36, bounce: 0.12)
+        return .spring(duration: 0.32, bounce: 0.08)
+    }
+
+    private var tabContentTransition: AnyTransition {
+        if reduceMotion { return .opacity }
+        return .asymmetric(
+            insertion: .opacity.combined(with: .scale(scale: 0.97)).combined(with: .offset(y: 8)),
+            removal: .opacity.combined(with: .scale(scale: 1.02))
+        )
     }
 
     private func shortcutLabel(for action: ToolAction) -> String? {

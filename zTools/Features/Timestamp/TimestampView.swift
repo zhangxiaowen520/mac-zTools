@@ -92,7 +92,7 @@ struct TimestampView: View {
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 10)
-                    .background(Color.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .background(ZTheme.fill, in: RoundedRectangle(cornerRadius: ZTheme.radiusControl, style: .continuous))
                 }
 
                 // 时间选择器卡片
@@ -114,22 +114,13 @@ struct TimestampView: View {
                     // 当前选中时间展示
                     HStack(spacing: 12) {
                         ZStack {
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .fill(
-                                    LinearGradient(
-                                        colors: [
-                                            Color.accentColor.opacity(0.22),
-                                            Color.accentColor.opacity(0.08)
-                                        ],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
+                            RoundedRectangle(cornerRadius: ZTheme.radiusTile, style: .continuous)
+                                .fill(ZTheme.selectionFill)
                                 .frame(width: 52, height: 52)
                             VStack(spacing: 0) {
                                 Text(monthDay(displayDate).0)
                                     .font(.system(size: 10, weight: .bold))
-                                    .foregroundStyle(Color.accentColor)
+                                    .foregroundStyle(ZTheme.accent)
                                 Text(monthDay(displayDate).1)
                                     .font(.system(size: 20, weight: .bold, design: .rounded))
                                     .foregroundStyle(.primary)
@@ -147,7 +138,7 @@ struct TimestampView: View {
                         Spacer(minLength: 0)
                     }
                     .padding(12)
-                    .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .background(ZTheme.fillQuiet, in: RoundedRectangle(cornerRadius: ZTheme.radiusTile, style: .continuous))
 
                     // 紧凑步进选择：日期 + 时间
                     VStack(spacing: 8) {
@@ -173,7 +164,7 @@ struct TimestampView: View {
                                 .datePickerStyle(.graphical)
                                 .labelsHidden()
                                 .padding(8)
-                                .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                .background(ZTheme.fillQuiet, in: RoundedRectangle(cornerRadius: ZTheme.radiusTile, style: .continuous))
                                 .transition(.opacity.combined(with: .move(edge: .top)))
                         }
                     }
@@ -300,14 +291,14 @@ struct TimestampView: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
-        .background(Color.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .background(ZTheme.fill, in: RoundedRectangle(cornerRadius: ZTheme.radiusChip, style: .continuous))
     }
 
     private func pickerChip<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         content()
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .background(Color.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .background(ZTheme.fill, in: RoundedRectangle(cornerRadius: ZTheme.radiusChip, style: .continuous))
     }
 
     private func sectionLabel(_ title: String, icon: String) -> some View {
@@ -398,8 +389,8 @@ struct TimestampView: View {
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 8)
-            .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-            .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .background(ZTheme.fill, in: RoundedRectangle(cornerRadius: ZTheme.radiusChip, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: ZTheme.radiusChip, style: .continuous))
         }
         .buttonStyle(.plain)
     }

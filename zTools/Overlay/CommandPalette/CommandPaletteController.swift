@@ -189,21 +189,16 @@ private struct CommandPaletteView: View {
             HStack(spacing: 10) {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(.secondary)
-                TextField("搜索功能或剪贴板…", text: $query)
+                TextField("搜索工具、剪贴板…", text: $query)
                     .textFieldStyle(.plain)
+                    .font(.system(size: 16, weight: .medium))
                     .focused($focused)
                     .onSubmit { activateSelected() }
-                Button(action: onClose) {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 10, weight: .bold))
-                        .frame(width: 20, height: 20)
-                        .background(Color.primary.opacity(0.08), in: Circle())
-                }
-                .buttonStyle(.plain)
+                ZCloseButton(action: onClose)
             }
-            .padding(14)
+            .padding(16)
 
-            Divider()
+            Divider().opacity(0.5)
 
             if rows.isEmpty {
                 Text("无匹配结果")
@@ -218,12 +213,11 @@ private struct CommandPaletteView: View {
                                     selectedIndex = index
                                     activate(row)
                                 } label: {
-                                    HStack(spacing: 10) {
-                                        Image(systemName: row.systemImage)
-                                            .frame(width: 22)
-                                            .foregroundStyle(.secondary)
+                                    HStack(spacing: 12) {
+                                        ZIconTile(systemImage: row.systemImage, size: 32)
                                         VStack(alignment: .leading, spacing: 2) {
                                             Text(row.title)
+                                                .font(.system(size: 13.5))
                                                 .lineLimit(1)
                                                 .foregroundStyle(.primary)
                                             Text(row.subtitle)
@@ -234,10 +228,7 @@ private struct CommandPaletteView: View {
                                     }
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 8)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                            .fill(index == selectedIndex ? Color.accentColor.opacity(0.16) : Color.clear)
-                                    )
+                                    .zSelected(index == selectedIndex, radius: ZTheme.radiusControl)
                                     .contentShape(Rectangle())
                                 }
                                 .buttonStyle(.plain)
@@ -255,21 +246,16 @@ private struct CommandPaletteView: View {
                 }
             }
 
-            Divider()
+            Divider().opacity(0.5)
             HStack {
                 Text("↑↓ 选择 · ↩ 执行 · Esc 关闭")
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
                 Spacer()
             }
-            .padding(10)
+            .padding(12)
         }
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.1), lineWidth: 0.5)
-        )
-        .shadow(color: .black.opacity(0.25), radius: 28, y: 12)
+        .zGlass()
         .onAppear {
             focused = true
             selectedIndex = 0

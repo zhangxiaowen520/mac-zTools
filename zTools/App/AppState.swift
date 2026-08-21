@@ -192,7 +192,7 @@ final class AppState: ObservableObject {
 
     func openTranslate(text: String?) {
         let initial = text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        panelController.present(title: "翻译", size: CGSize(width: 460, height: 500)) {
+        panelController.present(title: "翻译", size: ToolPanelKind.translate.preferredSize) {
             TranslateView(initialText: initial)
                 .environmentObject(self)
         }
@@ -434,7 +434,7 @@ final class AppState: ObservableObject {
                 return
             }
             PasteboardUtil.copyString(text)
-            panelController.present(title: "OCR 结果", size: CGSize(width: 440, height: 400)) {
+            panelController.present(title: "OCR 结果", size: CGSize(width: 460, height: 420)) {
                 OCRResultView(text: text)
                     .environmentObject(self)
             }
@@ -464,7 +464,7 @@ final class AppState: ObservableObject {
             guard let color else { return }
             let hex = color.hexString
             PasteboardUtil.copyString(hex)
-            self.panelController.present(title: "取色", size: CGSize(width: 360, height: 420)) {
+            self.panelController.present(title: "取色", size: CGSize(width: 380, height: 460)) {
                 ColorPickerResultView(color: color)
             }
             self.showToast("已复制 \(hex)")
@@ -548,7 +548,7 @@ enum ToolPanelKind {
     var preferredSize: CGSize {
         switch self {
         case .clipboard: CGSize(width: 420, height: 540)
-        case .translate: CGSize(width: 460, height: 500)
+        case .translate: CGSize(width: 560, height: 500)
         case .timestamp: CGSize(width: 400, height: 520)
         case .note: CGSize(width: 640, height: 560)
         case .settings: CGSize(width: 520, height: 480)

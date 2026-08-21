@@ -27,7 +27,12 @@ final class SettingsWindowController {
             defer: false
         )
         window.title = "zTools 设置"
-        window.titlebarAppearsTransparent = false
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .visible
+        window.toolbarStyle = .unified
+        let toolbar = NSToolbar(identifier: "SettingsToolbar")
+        toolbar.displayMode = .iconOnly
+        window.toolbar = toolbar
         window.contentViewController = hosting
         window.setContentSize(NSSize(width: 780, height: 520))
         window.minSize = NSSize(width: 680, height: 440)

@@ -206,26 +206,24 @@ final class ScreenshotService {
         await withCheckedContinuation { continuation in
             var remaining = seconds
             var cancelled = false
-            let label = NSTextField(labelWithString: "\(remaining)")
-            label.font = .systemFont(ofSize: 72, weight: .bold)
-            label.textColor = .white
-            label.alignment = .center
-            label.frame = NSRect(x: 0, y: 0, width: 160, height: 160)
+            let size: CGFloat = 188
+            let hosting = NSHostingView(rootView: CountdownBadge(value: remaining))
+            hosting.frame = NSRect(origin: .zero, size: CGSize(width: size, height: size))
 
             let panel = NSPanel(
-                contentRect: NSRect(x: 0, y: 0, width: 160, height: 160),
+                contentRect: NSRect(x: 0, y: 0, width: size, height: size),
                 styleMask: [.borderless, .nonactivatingPanel],
                 backing: .buffered,
                 defer: false
             )
             panel.isOpaque = false
-            panel.backgroundColor = NSColor.black.withAlphaComponent(0.45)
+            panel.backgroundColor = .clear
             panel.level = .statusBar
-            panel.contentView = label
-            panel.hasShadow = true
+            panel.contentView = hosting
+            panel.hasShadow = false
             if let screen = NSScreen.main {
                 let v = screen.visibleFrame
-                panel.setFrameOrigin(CGPoint(x: v.midX - 80, y: v.midY - 80))
+                panel.setFrameOrigin(CGPoint(x: v.midX - size / 2, y: v.midY - size / 2))
             }
             panel.orderFrontRegardless()
             self.countdownPanel = panel
@@ -254,7 +252,7 @@ final class ScreenshotService {
                     continuation.resume(returning: false)
                     return
                 }
-                label.stringValue = "\(remaining)"
+                hosting.rootView = CountdownBadge(value: remaining)
                 remaining -= 1
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) { tick() }
             }
@@ -522,6 +520,22 @@ final class ScreenshotServiceCapture {
     }
 }
 
+private struct CountdownBadge: View {
+    let value: Int
+
+    var body: some View {
+        Text("\(value)")
+            .font(.system(size: 72, weight: .bold, design: .rounded))
+            .monospacedDigit()
+            .foregroundStyle(.primary)
+            .frame(width: 160, height: 160)
+            .background(.ultraThinMaterial, in: Circle())
+            .overlay(Circle().strokeBorder(ZTheme.hairline, lineWidth: 0.8))
+            .shadow(color: ZTheme.shadowColor, radius: 20, y: 8)
+            .frame(width: 188, height: 188)
+    }
+}
+
 // MARK: - Action bar
 
 struct CaptureActionBarView: View {
@@ -542,31 +556,27 @@ struct CaptureActionBarView: View {
             actionButton(title: "OCR", icon: "text.viewfinder", isDefault: defaultAction == .ocr, action: onOCR)
 
             Rectangle()
-                .fill(Color.white.opacity(0.22))
+                .fill(Color.primary.opacity(0.16))
                 .frame(width: 1, height: 18)
                 .padding(.horizontal, 2)
 
             Button(action: onCancel) {
                 Text("取消")
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.85))
+                    .foregroundStyle(.secondary)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 7)
             }
             .buttonStyle(.plain)
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        // 实色半透明底，避免 material + 窗口矩形阴影叠出线框
-        .background(
-            Capsule(style: .continuous)
-                .fill(Color.black.opacity(0.72))
-        )
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .background(.thickMaterial, in: Capsule(style: .continuous))
         .overlay(
             Capsule(style: .continuous)
-                .strokeBorder(Color.white.opacity(0.14), lineWidth: 0.8)
+                .strokeBorder(ZTheme.hairline, lineWidth: 0.8)
         )
-        .shadow(color: .black.opacity(0.35), radius: 18, y: 8)
+        .shadow(color: ZTheme.shadowColor, radius: 18, y: 8)
         // 给阴影留白，但宿主窗口无矩形阴影，不会出现方框
         .padding(12)
         .fixedSize()
@@ -582,12 +592,12 @@ struct CaptureActionBarView: View {
                     .lineLimit(1)
                     .fixedSize(horizontal: true, vertical: false)
             }
-            .foregroundStyle(isDefault ? Color.black.opacity(0.88) : Color.white.opacity(0.92))
+            .foregroundStyle(isDefault ? Color.white : Color.primary.opacity(0.92))
             .padding(.horizontal, 12)
             .padding(.vertical, 7)
             .background(
                 Capsule(style: .continuous)
-                    .fill(isDefault ? Color.white : Color.white.opacity(0.12))
+                    .fill(isDefault ? ZTheme.accent : Color.primary.opacity(0.08))
             )
         }
         .buttonStyle(.plain)
@@ -717,7 +727,7 @@ final class SelectionView: NSView {
                 path.windingRule = .evenOdd
                 dim.setFill()
                 path.fill()
-                NSColor.systemBlue.withAlphaComponent(0.9).setStroke()
+                ZTheme.accentNS.withAlphaComponent(0.9).setStroke()
                 let b = NSBezierPath(rect: hover.insetBy(dx: 1, dy: 1))
                 b.lineWidth = 2
                 b.stroke()

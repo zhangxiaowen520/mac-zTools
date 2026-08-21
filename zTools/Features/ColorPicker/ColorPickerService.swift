@@ -51,14 +51,18 @@ struct ColorPickerResultView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 14) {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color(nsColor: color))
-                    .frame(height: 72)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .strokeBorder(Color.primary.opacity(0.1), lineWidth: 0.5)
-                    )
-                    .padding(.horizontal, 14)
+                VStack(spacing: 10) {
+                    RoundedRectangle(cornerRadius: ZTheme.radiusCard, style: .continuous)
+                        .fill(Color(nsColor: color))
+                        .frame(height: 96)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: ZTheme.radiusCard, style: .continuous)
+                                .strokeBorder(Color.primary.opacity(0.1), lineWidth: 0.5)
+                        )
+                    Text(color.hexString)
+                        .font(.system(size: 22, weight: .semibold, design: .monospaced))
+                }
+                .padding(.horizontal, ZTheme.pad)
 
                 VStack(spacing: 6) {
                     colorRow("HEX", color.hexString)
@@ -68,31 +72,32 @@ struct ColorPickerResultView: View {
                     colorRow("SwiftUI", color.swiftUIColorString)
                     colorRow("UIColor", color.uiColorString)
                 }
-                .padding(.horizontal, 14)
+                .padding(.horizontal, ZTheme.pad)
 
                 if !history.items.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
-                            Text("历史色板")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(.secondary)
+                            ZSectionLabel(title: "历史色板")
                             Spacer()
                             Button("清空") { history.clear() }
                                 .font(.caption2)
                                 .buttonStyle(.borderless)
                         }
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 8), spacing: 6) {
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 8), spacing: 8) {
                             ForEach(history.items) { item in
                                 Button {
                                     PasteboardUtil.copyString(item.hex)
                                     copied = item.hex
                                 } label: {
-                                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                                    RoundedRectangle(cornerRadius: ZTheme.radiusChip, style: .continuous)
                                         .fill(Color(nsColor: item.nsColor))
-                                        .frame(height: 22)
+                                        .frame(height: 28)
                                         .overlay(
-                                            RoundedRectangle(cornerRadius: 5, style: .continuous)
-                                                .strokeBorder(Color.primary.opacity(0.12), lineWidth: 0.5)
+                                            RoundedRectangle(cornerRadius: ZTheme.radiusChip, style: .continuous)
+                                                .strokeBorder(
+                                                    item.hex == color.hexString ? ZTheme.accent : Color.primary.opacity(0.12),
+                                                    lineWidth: item.hex == color.hexString ? 2 : 0.5
+                                                )
                                         )
                                 }
                                 .buttonStyle(.plain)
@@ -108,7 +113,7 @@ struct ColorPickerResultView: View {
                             }
                         }
                     }
-                    .padding(.horizontal, 14)
+                    .padding(.horizontal, ZTheme.pad)
                 }
 
                 if let copied {
@@ -116,7 +121,7 @@ struct ColorPickerResultView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
-                        .padding(.horizontal, 14)
+                        .padding(.horizontal, ZTheme.pad)
                 }
             }
             .padding(.top, 4)
@@ -149,7 +154,7 @@ struct ColorPickerResultView: View {
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 7)
-            .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .background(ZTheme.fill, in: RoundedRectangle(cornerRadius: ZTheme.radiusChip, style: .continuous))
         }
         .buttonStyle(.plain)
     }

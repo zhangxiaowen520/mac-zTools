@@ -22,23 +22,53 @@ struct TranslateView: View {
         ("es", "Español")
     ]
 
+    private var targetName: String {
+        languages.first { $0.0 == targetLanguage }?.1 ?? targetLanguage
+    }
+
     var body: some View {
         VStack(spacing: 12) {
-            HStack {
-                Text("目标语言")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Picker("", selection: $targetLanguage) {
+            HStack(spacing: 8) {
+                Menu {
                     ForEach(languages, id: \.0) { item in
-                        Text(item.1).tag(item.0)
+                        Button(item.1) { targetLanguage = item.0 }
                     }
+                } label: {
+                    Text(targetName)
+                        .font(.system(size: 13, weight: .medium))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            ZTheme.selectionFill,
+                            in: RoundedRectangle(cornerRadius: ZTheme.radiusChip, style: .continuous)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: ZTheme.radiusChip, style: .continuous)
+                                .strokeBorder(ZTheme.selectionStroke, lineWidth: 1)
+                        )
                 }
-                .labelsHidden()
-                .frame(width: 140)
+                .buttonStyle(.plain)
 
-                Spacer()
+                Button {
+                    if !result.isEmpty {
+                        let old = source
+                        source = result
+                        result = old
+                    }
+                } label: {
+                    Image(systemName: "arrow.left.arrow.right")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 28, height: 28)
+                        .background(ZTheme.fill, in: RoundedRectangle(cornerRadius: ZTheme.radiusChip, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                .disabled(result.isEmpty)
+                .help("交换原文 / 译文")
 
-                Button("划词") {
+                Spacer(minLength: 8)
+
+                ZGhostButton(title: "划词") {
                     Task {
                         if let text = await SelectionHelper.selectedText(), !text.isEmpty {
                             source = text
@@ -47,95 +77,45 @@ struct TranslateView: View {
                         }
                     }
                 }
-                .buttonStyle(.bordered)
                 .help("读取当前选中文本（需辅助功能）")
 
-                Button("剪贴板") {
+                ZGhostButton(title: "剪贴板") {
                     if let str = NSPasteboard.general.string(forType: .string) {
                         source = str
                     }
                 }
-                .buttonStyle(.bordered)
             }
-            .padding(.horizontal, 14)
+            .padding(.horizontal, ZTheme.pad)
 
-            VStack(alignment: .leading, spacing: 6) {
-                Text("原文")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                TextEditor(text: $source)
-                    .font(.system(size: 13))
-                    .scrollContentBackground(.hidden)
-                    .padding(8)
-                    .frame(minHeight: 110)
-                    .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            HStack(alignment: .top, spacing: 10) {
+                editorPane(title: "原文", text: $source)
+                editorPane(title: "译文", text: $result, showCopy: !result.isEmpty)
             }
-            .padding(.horizontal, 14)
-
-            HStack {
-                Button {
-                    Task { await runTranslate() }
-                } label: {
-                    if isLoading {
-                        ProgressView()
-                            .controlSize(.small)
-                            .frame(width: 64)
-                    } else {
-                        Label("翻译", systemImage: "globe")
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(source.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading)
-                .keyboardShortcut(.return, modifiers: .command)
-
-                Button("交换") {
-                    if !result.isEmpty {
-                        source = result
-                        result = ""
-                    }
-                }
-                .buttonStyle(.bordered)
-                .disabled(result.isEmpty)
-
-                Spacer()
-            }
-            .padding(.horizontal, 14)
-
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Text("译文")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    if !result.isEmpty {
-                        Button("复制") {
-                            PasteboardUtil.copyString(result)
-                            appState.showToast("已复制译文")
-                        }
-                        .buttonStyle(.borderless)
-                        .font(.caption)
-                    }
-                }
-                TextEditor(text: $result)
-                    .font(.system(size: 13))
-                    .scrollContentBackground(.hidden)
-                    .padding(8)
-                    .frame(minHeight: 110)
-                    .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-            }
-            .padding(.horizontal, 14)
+            .padding(.horizontal, ZTheme.pad)
+            .frame(maxHeight: .infinity)
 
             if let errorMessage {
                 Text(errorMessage)
                     .font(.caption)
                     .foregroundStyle(.red)
-                    .padding(.horizontal, 14)
+                    .padding(.horizontal, ZTheme.pad)
                     .textSelection(.enabled)
             }
 
-            Spacer(minLength: 0)
+            HStack {
+                Spacer()
+                ZPrimaryButton(
+                    title: "翻译",
+                    isLoading: isLoading,
+                    enabled: !source.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                ) {
+                    Task { await runTranslate() }
+                }
+                .keyboardShortcut(.return, modifiers: .command)
+            }
+            .padding(.horizontal, ZTheme.pad)
+            .padding(.bottom, ZTheme.pad)
         }
-        .padding(.bottom, 14)
         .onAppear {
             targetLanguage = appState.settings.targetLanguage
             if !didApplyInitial {
@@ -147,6 +127,30 @@ struct TranslateView: View {
                     source = str
                 }
             }
+        }
+    }
+
+    private func editorPane(title: String, text: Binding<String>, showCopy: Bool = false) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                ZSectionLabel(title: title)
+                Spacer()
+                if showCopy {
+                    ZGhostButton(title: "复制") {
+                        PasteboardUtil.copyString(text.wrappedValue)
+                        appState.showToast("已复制译文")
+                    }
+                }
+            }
+            TextEditor(text: text)
+                .font(.system(size: 14))
+                .scrollContentBackground(.hidden)
+                .padding(10)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(
+                    ZTheme.fillQuiet,
+                    in: RoundedRectangle(cornerRadius: ZTheme.radiusControl, style: .continuous)
+                )
         }
     }
 

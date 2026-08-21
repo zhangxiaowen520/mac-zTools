@@ -6,9 +6,11 @@ struct zToolsApp: App {
     @StateObject private var appState = AppState.shared
 
     var body: some Scene {
-        MenuBarExtra("zTools", systemImage: "seal.fill") {
+        MenuBarExtra {
             MenuBarContentView()
                 .environmentObject(appState)
+        } label: {
+            MenuBarZMark()
         }
         .menuBarExtraStyle(.menu)
 

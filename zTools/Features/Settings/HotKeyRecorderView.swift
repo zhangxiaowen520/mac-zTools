@@ -28,12 +28,12 @@ struct HotKeyRecorderView: View {
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
                     .background(
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .fill(recorder.isRecording ? Color.accentColor.opacity(0.12) : Color.primary.opacity(0.06))
+                        RoundedRectangle(cornerRadius: ZTheme.radiusChip, style: .continuous)
+                            .fill(recorder.isRecording ? ZTheme.selectionFill : ZTheme.fill)
                     )
                     .overlay(
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .strokeBorder(recorder.isRecording ? Color.accentColor.opacity(0.5) : Color.clear, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: ZTheme.radiusChip, style: .continuous)
+                            .strokeBorder(recorder.isRecording ? ZTheme.selectionStroke : Color.clear, lineWidth: 1)
                     )
             }
             .buttonStyle(.plain)

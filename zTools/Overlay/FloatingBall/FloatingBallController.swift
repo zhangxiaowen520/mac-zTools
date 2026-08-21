@@ -248,7 +248,7 @@ final class FloatingBallController: NSObject {
         guard let ball = panel else { return }
         dismissMenu()
 
-        let size = CGSize(width: 248, height: 320)
+        let size = FloatingBallMenuView.size
         let menuPanel = NSPanel(
             contentRect: NSRect(origin: .zero, size: size),
             styleMask: [.borderless, .nonactivatingPanel],
@@ -258,7 +258,7 @@ final class FloatingBallController: NSObject {
         menuPanel.level = .statusBar
         menuPanel.isOpaque = false
         menuPanel.backgroundColor = .clear
-        menuPanel.hasShadow = true
+        menuPanel.hasShadow = false
         menuPanel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
 
         let content = FloatingBallMenuView { [weak self] action in
@@ -345,7 +345,7 @@ private struct FloatingBallView: View {
         ZStack {
             ZToolsLogoMark(size: size, showGlow: true)
                 .scaleEffect(isPressed ? 0.92 : (isHovering ? 1.04 : 1.0))
-                .shadow(color: Color(red: 0.5, green: 0.2, blue: 0.9).opacity(isHovering ? 0.45 : 0.28), radius: isHovering ? 16 : 10, y: 4)
+                .shadow(color: ZTheme.accent.opacity(isHovering ? 0.35 : 0.16), radius: isHovering ? 16 : 10, y: 4)
         }
         .frame(width: size + 18, height: size + 18)
         .contentShape(Circle())
@@ -388,49 +388,27 @@ private struct FloatingBallView: View {
 }
 
 struct FloatingBallMenuView: View {
+    static let size = CGSize(width: 276, height: 368)
+
     let onSelect: (ToolAction) -> Void
     @ObservedObject private var settings = AppState.shared.settings
-    private let columns = [GridItem(.flexible(), spacing: 6), GridItem(.flexible(), spacing: 6), GridItem(.flexible(), spacing: 6)]
+    private let columns = [
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12)
+    ]
 
     var body: some View {
-        VStack(spacing: 12) {
-            HStack {
-                ZToolsLogoBadge()
-                Spacer()
-            }
+        VStack(alignment: .leading, spacing: 16) {
+            ZToolsLogoBadge()
 
-            LazyVGrid(columns: columns, spacing: 8) {
+            LazyVGrid(columns: columns, spacing: 12) {
                 ForEach(ToolAction.launcherItems) { action in
                     Button {
                         onSelect(action)
                     } label: {
                         VStack(spacing: 5) {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [
-                                                Color.accentColor.opacity(0.18),
-                                                Color.accentColor.opacity(0.08)
-                                            ],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                                    .frame(width: 40, height: 40)
-                                Image(systemName: action.systemImage)
-                                    .font(.system(size: 17, weight: .semibold))
-                                    .foregroundStyle(
-                                        LinearGradient(
-                                            colors: [
-                                                Color(red: 0.55, green: 0.45, blue: 1.0),
-                                                Color(red: 0.95, green: 0.35, blue: 0.65)
-                                            ],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                            }
+                            ZIconTile(systemImage: action.systemImage, size: 40)
                             Text(action.title)
                                 .font(.system(size: 11, weight: .medium))
                                 .foregroundStyle(.primary)
@@ -443,32 +421,19 @@ struct FloatingBallMenuView: View {
                             }
                         }
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
-                        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .padding(.vertical, 4)
+                        .contentShape(RoundedRectangle(cornerRadius: ZTheme.radiusTile, style: .continuous))
                     }
                     .buttonStyle(.plain)
                     .help(helpText(for: action))
                 }
             }
         }
-        .padding(14)
-        .frame(width: 248, height: 320)
-        .background {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(.ultraThinMaterial)
-        }
-        .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .strokeBorder(
-                    LinearGradient(
-                        colors: [Color.white.opacity(0.22), Color.white.opacity(0.05)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 0.8
-                )
-        )
-        .shadow(color: .black.opacity(0.2), radius: 20, y: 8)
+        .padding(.top, 22)
+        .padding(.horizontal, 18)
+        .padding(.bottom, 22)
+        .frame(width: Self.size.width, height: Self.size.height, alignment: .topLeading)
+        .zGlass(radius: ZTheme.radiusCard, hairline: false)
     }
 
     private func shortcutLabel(for action: ToolAction) -> String? {

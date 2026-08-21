@@ -104,15 +104,10 @@ private struct PinnedImageView: View {
             Image(nsImage: image)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: ZTheme.radiusChip, style: .continuous))
                 .padding(.horizontal, 8)
                 .padding(.bottom, 8)
         }
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.12), lineWidth: 0.5)
-        )
-        .shadow(color: .black.opacity(0.2), radius: 16, y: 6)
+        .zGlass(radius: ZTheme.radiusCard)
     }
 }

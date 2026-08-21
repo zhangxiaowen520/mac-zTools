@@ -234,14 +234,7 @@ struct ScreenshotEditorView: View {
             Image(systemName: item.systemImage)
                 .font(.system(size: 12, weight: .semibold))
                 .frame(width: 28, height: 26)
-                .background(
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(tool == item ? Color.accentColor.opacity(0.18) : Color.clear)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .strokeBorder(tool == item ? Color.accentColor.opacity(0.5) : Color.clear, lineWidth: 1)
-                )
+                .zSelected(tool == item, radius: ZTheme.radiusChip)
         }
         .buttonStyle(.plain)
         .help(item.title)

@@ -8,6 +8,7 @@ final class AppState: ObservableObject {
     static let shared = AppState()
 
     @Published var showFloatingBall: Bool
+    @Published var showDynamicIsland: Bool
     @Published var isClipboardPaused: Bool = false
     @Published var toastMessage: String?
     @Published var pendingTranslateText: String = ""
@@ -18,6 +19,7 @@ final class AppState: ObservableObject {
     let settings: SettingsStore
     let clipboardStore: ClipboardStore
     let floatingBall = FloatingBallController()
+    let dynamicIsland = DynamicIslandController()
     let panelController = ToolPanelController()
     let hotKeyManager = HotKeyManager()
     let pasteboardMonitor = PasteboardMonitor()
@@ -36,6 +38,7 @@ final class AppState: ObservableObject {
         self.clipboardStore = ClipboardStore(limit: settings.clipboardLimit)
         self.noteStore = NoteStore(directory: settings.notesDirectoryURL)
         self.showFloatingBall = settings.showFloatingBall
+        self.showDynamicIsland = settings.showDynamicIsland
     }
 
     /// Remember the frontmost app if it isn't zTools itself.
@@ -71,9 +74,18 @@ final class AppState: ObservableObject {
         floatingBall.onOpenSettings = { [weak self] in
             self?.openSettings()
         }
+        dynamicIsland.onAction = { [weak self] action in
+            self?.handle(action)
+        }
+        dynamicIsland.onOpenSettings = { [weak self] in
+            self?.openSettings()
+        }
 
         if showFloatingBall {
             floatingBall.show(size: settings.floatingBallSize)
+        }
+        if showDynamicIsland {
+            dynamicIsland.show()
         }
 
         bindHotKeys()
@@ -95,6 +107,19 @@ final class AppState: ObservableObject {
                 }
             }
             .store(in: &cancellables)
+
+        $showDynamicIsland
+            .dropFirst()
+            .sink { [weak self] visible in
+                guard let self else { return }
+                self.settings.showDynamicIsland = visible
+                if visible {
+                    self.dynamicIsland.show()
+                } else {
+                    self.dynamicIsland.hide()
+                }
+            }
+            .store(in: &cancellables)
     }
 
     func teardown() {
@@ -103,12 +128,17 @@ final class AppState: ObservableObject {
         clipboardStore.flush()
         noteStore.flush()
         floatingBall.hide()
+        dynamicIsland.hide()
         panelController.close()
         CommandPaletteController.shared.close()
         PinnedImageController.shared.closeAll()
     }
 
     func handle(_ action: ToolAction) {
+        if action != .toggleDynamicIsland {
+            dynamicIsland.collapse()
+        }
+
         // Capture previous app before any UI that steals focus
         switch action {
         case .clipboard, .translate, .timestamp, .note, .commandPalette, .selectionTranslate, .settings:
@@ -147,6 +177,8 @@ final class AppState: ObservableObject {
             openSettings()
         case .toggleFloatingBall:
             showFloatingBall.toggle()
+        case .toggleDynamicIsland:
+            showDynamicIsland.toggle()
         case .commandPalette:
             CommandPaletteController.shared.toggle()
         case .selectionTranslate:
@@ -201,6 +233,7 @@ final class AppState: ObservableObject {
             (.timestamp, .timestamp),
             (.colorPicker, .colorPicker),
             (.toggleBall, .toggleFloatingBall),
+            (.toggleIsland, .toggleDynamicIsland),
             (.commandPalette, .commandPalette),
             (.selectionTranslate, .selectionTranslate)
         ]
@@ -239,15 +272,22 @@ final class AppState: ObservableObject {
         }
     }
 
-    /// 截图 / OCR / 取色时隐藏悬浮球避免入镜，结束后按需恢复。
+    /// 截图 / OCR / 取色时隐藏悬浮球与灵动岛避免入镜，结束后按需恢复。
     private func withBallHidden<T>(_ body: () async throws -> T) async rethrows -> T {
         let ballWasVisible = showFloatingBall
+        let islandWasVisible = showDynamicIsland
         if ballWasVisible {
             floatingBall.hide()
+        }
+        if islandWasVisible {
+            dynamicIsland.hide()
         }
         defer {
             if ballWasVisible, showFloatingBall {
                 floatingBall.show(size: settings.floatingBallSize)
+            }
+            if islandWasVisible, showDynamicIsland {
+                dynamicIsland.show()
             }
         }
         return try await body()
@@ -405,15 +445,21 @@ final class AppState: ObservableObject {
     }
 
     private func pickColor() {
-        // 取色采样读取屏幕像素，隐藏悬浮球避免误取
         let ballWasVisible = showFloatingBall
+        let islandWasVisible = showDynamicIsland
         if ballWasVisible {
             floatingBall.hide()
+        }
+        if islandWasVisible {
+            dynamicIsland.hide()
         }
         colorPickerService.pick { [weak self] color in
             guard let self else { return }
             if ballWasVisible, self.showFloatingBall {
                 self.floatingBall.show(size: self.settings.floatingBallSize)
+            }
+            if islandWasVisible, self.showDynamicIsland {
+                self.dynamicIsland.show()
             }
             guard let color else { return }
             let hex = color.hexString
@@ -441,6 +487,7 @@ enum ToolAction: String, CaseIterable, Identifiable {
     case colorPicker
     case settings
     case toggleFloatingBall
+    case toggleDynamicIsland
     case commandPalette
     case selectionTranslate
 
@@ -462,6 +509,7 @@ enum ToolAction: String, CaseIterable, Identifiable {
         case .colorPicker: String(localized: "取色")
         case .settings: String(localized: "设置")
         case .toggleFloatingBall: String(localized: "悬浮球")
+        case .toggleDynamicIsland: String(localized: "灵动岛")
         case .commandPalette: String(localized: "命令面板")
         case .selectionTranslate: String(localized: "划词翻译")
         }
@@ -483,6 +531,7 @@ enum ToolAction: String, CaseIterable, Identifiable {
         case .colorPicker: "eyedropper"
         case .settings: "gearshape"
         case .toggleFloatingBall: "circle.dashed"
+        case .toggleDynamicIsland: "capsule"
         case .commandPalette: "command"
         case .selectionTranslate: "character.cursor.ibeam"
         }

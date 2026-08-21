@@ -103,6 +103,14 @@ struct SettingsView: View {
                     appState.floatingBall.updateSize(size)
                 }
             }
+            Section("灵动岛") {
+                Toggle("显示灵动岛", isOn: $appState.showDynamicIsland)
+                Toggle("悬停展开", isOn: $settings.islandHoverExpand)
+                Toggle("全屏应用时自动隐藏", isOn: $settings.hideIslandInFullscreen)
+                Text("贴合刘海的胶囊入口。点击或悬停展开工具；Esc 或点外部收回。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
             Section("笔记") {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 4) {

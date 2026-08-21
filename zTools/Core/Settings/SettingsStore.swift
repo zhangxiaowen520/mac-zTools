@@ -6,7 +6,7 @@ final class SettingsStore: ObservableObject {
     enum HotKeyID: String, CaseIterable, Identifiable {
         case screenshot
         case screenshotFullscreen, screenshotDelay, screenshotWindow, screenshotLastRegion, screenshotPreset
-        case ocr, clipboard, translate, timestamp, note, colorPicker, toggleBall
+        case ocr, clipboard, translate, timestamp, note, colorPicker, toggleBall, toggleIsland
         case commandPalette, selectionTranslate
 
         var id: String { rawValue }
@@ -26,6 +26,7 @@ final class SettingsStore: ObservableObject {
             case .note: String(localized: "笔记")
             case .colorPicker: String(localized: "取色")
             case .toggleBall: String(localized: "显示/隐藏悬浮球")
+            case .toggleIsland: String(localized: "显示/隐藏灵动岛")
             case .commandPalette: String(localized: "命令面板")
             case .selectionTranslate: String(localized: "划词翻译")
             }
@@ -51,6 +52,7 @@ final class SettingsStore: ObservableObject {
             case "note": return .note
             case "colorPicker": return .colorPicker
             case "toggleFloatingBall": return .toggleBall
+            case "toggleDynamicIsland": return .toggleIsland
             case "commandPalette": return .commandPalette
             case "selectionTranslate": return .selectionTranslate
             default: return nil
@@ -80,6 +82,20 @@ final class SettingsStore: ObservableObject {
     @Published var dimBallNearEdge: Bool {
         didSet { defaults.set(dimBallNearEdge, forKey: Keys.dimBallNearEdge) }
     }
+
+    @Published var showDynamicIsland: Bool {
+        didSet { defaults.set(showDynamicIsland, forKey: Keys.showDynamicIsland) }
+    }
+
+    @Published var islandHoverExpand: Bool {
+        didSet { defaults.set(islandHoverExpand, forKey: Keys.islandHoverExpand) }
+    }
+
+    @Published var hideIslandInFullscreen: Bool {
+        didSet { defaults.set(hideIslandInFullscreen, forKey: Keys.hideIslandInFullscreen) }
+    }
+
+    var islandHoverDelay: TimeInterval { 0.18 }
 
     @Published var clipboardLimit: Int {
         didSet { defaults.set(clipboardLimit, forKey: Keys.clipboardLimit) }
@@ -134,6 +150,9 @@ final class SettingsStore: ObservableObject {
         snapFloatingBall = defaults.object(forKey: Keys.snapFloatingBall) as? Bool ?? true
         hideBallInFullscreen = defaults.object(forKey: Keys.hideBallInFullscreen) as? Bool ?? true
         dimBallNearEdge = defaults.object(forKey: Keys.dimBallNearEdge) as? Bool ?? true
+        showDynamicIsland = defaults.object(forKey: Keys.showDynamicIsland) as? Bool ?? true
+        islandHoverExpand = defaults.object(forKey: Keys.islandHoverExpand) as? Bool ?? true
+        hideIslandInFullscreen = defaults.object(forKey: Keys.hideIslandInFullscreen) as? Bool ?? true
         clipboardLimit = defaults.object(forKey: Keys.clipboardLimit) as? Int ?? 100
         launchAtLogin = defaults.bool(forKey: Keys.launchAtLogin)
         openFinderAfterSave = defaults.object(forKey: Keys.openFinderAfterSave) as? Bool ?? true
@@ -265,6 +284,7 @@ final class SettingsStore: ObservableObject {
             HotKeyID.note.rawValue: KeyChord(keyCode: 45, modifiers: [.option]), // ⌥N
             HotKeyID.colorPicker.rawValue: KeyChord(keyCode: 8, modifiers: [.option]), // ⌥C
             HotKeyID.toggleBall.rawValue: KeyChord(keyCode: 11, modifiers: [.option]), // ⌥B 悬浮球
+            HotKeyID.toggleIsland.rawValue: KeyChord(keyCode: 34, modifiers: [.option]), // ⌥I 灵动岛
             HotKeyID.commandPalette.rawValue: KeyChord(keyCode: 40, modifiers: [.option]), // ⌥K
             HotKeyID.selectionTranslate.rawValue: KeyChord(keyCode: 14, modifiers: [.option]) // ⌥E 划词译
         ]
@@ -288,6 +308,9 @@ final class SettingsStore: ObservableObject {
         static let snapFloatingBall = "settings.snapFloatingBall"
         static let hideBallInFullscreen = "settings.hideBallInFullscreen"
         static let dimBallNearEdge = "settings.dimBallNearEdge"
+        static let showDynamicIsland = "settings.showDynamicIsland"
+        static let islandHoverExpand = "settings.islandHoverExpand"
+        static let hideIslandInFullscreen = "settings.hideIslandInFullscreen"
         static let clipboardLimit = "settings.clipboardLimit"
         static let launchAtLogin = "settings.launchAtLogin"
         static let screenshotSaveDirectory = "settings.screenshotSaveDirectory"

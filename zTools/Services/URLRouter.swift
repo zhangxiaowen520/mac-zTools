@@ -64,6 +64,8 @@ enum URLRouter {
             state.handle(.selectionTranslate)
         case "toggle-ball":
             state.handle(.toggleFloatingBall)
+        case "island", "toggle-island", "dynamic-island":
+            state.handle(.toggleDynamicIsland)
         default:
             ToastController.shared.show("未知命令：\(host)")
         }

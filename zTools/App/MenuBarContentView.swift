@@ -44,6 +44,7 @@ struct MenuBarContentView: View {
         Divider()
 
         Toggle("显示悬浮球", isOn: $appState.showFloatingBall)
+        Toggle("显示灵动岛", isOn: $appState.showDynamicIsland)
         Toggle("暂停剪贴板记录", isOn: $appState.isClipboardPaused)
 
         Divider()

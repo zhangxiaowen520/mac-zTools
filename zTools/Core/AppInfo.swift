@@ -2,11 +2,11 @@ import Foundation
 
 enum AppVersionInfo {
     static var shortVersion: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.7.0"
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.8.0"
     }
 
     static var build: String {
-        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "7"
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "8"
     }
 
     static var displayVersion: String {
@@ -18,6 +18,16 @@ enum AppVersionInfo {
     static let copyright = "Copyright © 2026 zeno. All rights reserved."
 
     static let changelog: [(version: String, date: String, items: [String])] = [
+        (
+            "0.8.0",
+            "2026-08-21",
+            [
+                "界面重构：玻璃浮层、Coral 强调色、统一 OverlayChrome 与设计 token",
+                "翻译双栏、剪贴板置顶分节、OCR/取色/笔记布局重做",
+                "截图动作条与倒计时改为玻璃；灵动岛纯黑贴刘海，tab 过渡动画",
+                "设置窗毛玻璃背景；悬浮球菜单间距与描边修正"
+            ]
+        ),
         (
             "0.7.0",
             "2026-08-21",

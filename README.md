@@ -1,6 +1,6 @@
 # zTools
 
-macOS 菜单栏 + 悬浮球效率工具：截图、OCR、剪贴板、笔记、AI 翻译、时间戳、取色。
+macOS 菜单栏 + 悬浮球 + 灵动岛效率工具：截图、OCR、剪贴板、笔记、AI 翻译、时间戳、取色。
 
 > 原生 SwiftUI + AppKit · 最低 **macOS 15+** · Bundle ID `com.zeno.ztools`
 
@@ -17,6 +17,7 @@ macOS 菜单栏 + 悬浮球效率工具：截图、OCR、剪贴板、笔记、AI
 | **时间戳** | Unix 秒/毫秒、多时区、代码片段（Swift/JS/Python…） |
 | **笔记** | Markdown 文件（.md）；可配置目录；列表/搜索/置顶/预览；⌥N |
 | **取色** | 系统取色器；HEX/RGB/HSL/CSS/SwiftUI/UIColor；历史色板 |
+| **灵动岛** | 贴合刘海；收起两侧可配日历/时钟/农历/进度/电池/CPU 等；展开工具、应用列表、设备状态 |
 
 ---
 
@@ -24,6 +25,7 @@ macOS 菜单栏 + 悬浮球效率工具：截图、OCR、剪贴板、笔记、AI
 
 - **菜单栏**：功能入口（截图为子菜单）+ 设置  
 - **悬浮球**：可拖动、边缘磁吸、贴边半透明、全屏可隐藏；单击功能网格  
+- **灵动岛**：贴合硬件刘海；悬停或点击展开；可锁定；设置里配置左右翼  
 - **命令面板**：⌥K，搜索功能与剪贴板  
 - **全局快捷键**：默认 **⌥ + 单键**（见下表）
 
@@ -38,7 +40,7 @@ macOS 菜单栏 + 悬浮球效率工具：截图、OCR、剪贴板、笔记、AI
 | 上次区域 | ⌥X | 取色 | ⌥C |
 | 预设尺寸 | ⌥G | 悬浮球 | ⌥B |
 | 命令面板 | ⌥K | 划词翻译 | ⌥E |
-| 笔记 | ⌥N | | |
+| 笔记 | ⌥N | 灵动岛 | ⌥I |
 
 可在 **设置 → 快捷键** 中修改或「恢复默认」。
 
@@ -129,6 +131,7 @@ open 'ztools://clipboard'
 open 'ztools://translate?text=hello'
 open 'ztools://color'
 open 'ztools://palette'             # 命令面板
+open 'ztools://island'              # 显示/隐藏灵动岛
 open 'ztools://settings'
 open 'ztools://selection-translate'
 ```
@@ -161,7 +164,7 @@ mac-tools/
     ├── App/               # 入口、AppState、菜单栏
     ├── Core/              # 设置、热键、权限、存储
     ├── Features/          # 各业务功能
-    ├── Overlay/           # 悬浮球、工具面板、命令面板
+    ├── Overlay/           # 悬浮球、工具面板、命令面板、灵动岛
     ├── Services/          # AI、URL、剪贴板监听、更新检查
     └── Resources/
 ```
@@ -174,7 +177,7 @@ mac-tools/
 
 - 版本号见 `zTools/Info.plist`  
 - 更新日志见应用内 **设置 → 关于**（`AppVersionInfo.changelog`）  
-- 当前主线：**0.6.x**（笔记 Markdown + 截图体验打磨）
+- 当前主线：**0.6.x**（笔记 Markdown + 灵动岛开发中）
 
 ---
 

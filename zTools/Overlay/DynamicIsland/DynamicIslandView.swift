@@ -255,6 +255,12 @@ struct DynamicIslandView: View {
             .onChange(of: session.tab) { _, _ in
                 syncStatsPolling()
             }
+            .onChange(of: settings.islandLeftWing) { _, _ in
+                syncStatsPolling()
+            }
+            .onChange(of: settings.islandRightWing) { _, _ in
+                syncStatsPolling()
+            }
             .onDisappear {
                 stats.stop()
             }
@@ -263,32 +269,20 @@ struct DynamicIslandView: View {
     private var collapsedHeader: some View {
         HStack(spacing: 0) {
             TimelineView(.periodic(from: .now, by: 1)) { context in
-                Text(Self.collapsedDate(context.date))
-                    .font(.system(size: 10, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white)
+                IslandWingView(kind: settings.islandLeftWing, date: context.date, stats: stats)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.leading, 10)
+                    .padding(.leading, 8)
             }
 
             Color.clear
                 .frame(width: metrics.hasNotch ? metrics.notchWidth : 8)
 
             TimelineView(.periodic(from: .now, by: 1)) { context in
-                Text(context.date, format: .dateTime.hour().minute())
-                    .font(.system(size: 10, weight: .semibold, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundStyle(.white)
+                IslandWingView(kind: settings.islandRightWing, date: context.date, stats: stats)
                     .frame(maxWidth: .infinity, alignment: .trailing)
-                    .padding(.trailing, 10)
+                    .padding(.trailing, 8)
             }
         }
-    }
-
-    private static func collapsedDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "EEE d"
-        return formatter.string(from: date)
     }
 
     private var expandedPanel: some View {
@@ -355,7 +349,6 @@ struct DynamicIslandView: View {
                 session.tab = tab
             }
             if tab == .apps { apps.loadIfNeeded() }
-            syncStatsPolling()
         } label: {
             Text(title)
                 .font(.system(size: 12, weight: .semibold))
@@ -443,7 +436,7 @@ struct DynamicIslandView: View {
                     title: "磁盘",
                     value: stats.diskTotal == 0
                         ? "—"
-                        : "\(IslandStatsStore.formatBytes(stats.diskTotal - min(stats.diskFree, stats.diskTotal))) / \(IslandStatsStore.formatBytes(stats.diskTotal))"
+                        : "\(IslandStatsStore.formatBytes(stats.diskUsed)) / \(IslandStatsStore.formatBytes(stats.diskTotal))"
                 )
                 statsRow(icon: "clock", title: "运行时间", value: IslandStatsStore.formatUptime(stats.uptime))
                 statsRow(icon: "thermometer.medium", title: "温度状态", value: stats.thermalLabel)
@@ -487,11 +480,6 @@ struct DynamicIslandView: View {
 
     private var accessoryValue: String {
         guard let item = stats.accessories.first else { return "未连接" }
-        if let left = item.left, let right = item.right {
-            var parts = ["L \(left)%", "R \(right)%"]
-            if let c = item.casePercent { parts.append("盒 \(c)%") }
-            return parts.joined(separator: "  ")
-        }
         if let p = item.percent { return "\(p)%" }
         return "已连接"
     }
@@ -540,7 +528,8 @@ struct DynamicIslandView: View {
     }
 
     private func syncStatsPolling() {
-        let active = session.isExpanded && session.tab == .stats
+        let liveWings = settings.islandLeftWing.needsLiveStats || settings.islandRightWing.needsLiveStats
+        let active = (session.isExpanded && session.tab == .stats) || liveWings
         DispatchQueue.main.async {
             if active {
                 stats.start()

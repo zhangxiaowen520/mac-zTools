@@ -95,6 +95,14 @@ final class SettingsStore: ObservableObject {
         didSet { defaults.set(hideIslandInFullscreen, forKey: Keys.hideIslandInFullscreen) }
     }
 
+    @Published var islandLeftWing: IslandWingKind {
+        didSet { defaults.set(islandLeftWing.rawValue, forKey: Keys.islandLeftWing) }
+    }
+
+    @Published var islandRightWing: IslandWingKind {
+        didSet { defaults.set(islandRightWing.rawValue, forKey: Keys.islandRightWing) }
+    }
+
     var islandHoverDelay: TimeInterval { 0.18 }
 
     @Published var clipboardLimit: Int {
@@ -153,6 +161,8 @@ final class SettingsStore: ObservableObject {
         showDynamicIsland = defaults.object(forKey: Keys.showDynamicIsland) as? Bool ?? true
         islandHoverExpand = defaults.object(forKey: Keys.islandHoverExpand) as? Bool ?? true
         hideIslandInFullscreen = defaults.object(forKey: Keys.hideIslandInFullscreen) as? Bool ?? true
+        islandLeftWing = IslandWingKind(rawValue: defaults.string(forKey: Keys.islandLeftWing) ?? "") ?? .weekdayDay
+        islandRightWing = IslandWingKind(rawValue: defaults.string(forKey: Keys.islandRightWing) ?? "") ?? .clock
         clipboardLimit = defaults.object(forKey: Keys.clipboardLimit) as? Int ?? 100
         launchAtLogin = defaults.bool(forKey: Keys.launchAtLogin)
         openFinderAfterSave = defaults.object(forKey: Keys.openFinderAfterSave) as? Bool ?? true
@@ -311,6 +321,8 @@ final class SettingsStore: ObservableObject {
         static let showDynamicIsland = "settings.showDynamicIsland"
         static let islandHoverExpand = "settings.islandHoverExpand"
         static let hideIslandInFullscreen = "settings.hideIslandInFullscreen"
+        static let islandLeftWing = "settings.islandLeftWing"
+        static let islandRightWing = "settings.islandRightWing"
         static let clipboardLimit = "settings.clipboardLimit"
         static let launchAtLogin = "settings.launchAtLogin"
         static let screenshotSaveDirectory = "settings.screenshotSaveDirectory"

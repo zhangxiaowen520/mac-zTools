@@ -16,6 +16,7 @@
 | 翻译 | OpenAI 兼容 API（默认 DeepSeek） |
 | 时间戳 | 多格式 / 时区 / 代码片段 |
 | 取色 | 系统取色器 + 历史色板 + 多格式导出 |
+| 灵动岛 | 贴合刘海胶囊；收起两侧可配信息；展开工具 / 应用 / 状态 |
 
 - **产品名**：zTools  
 - **Bundle ID**：`com.zeno.ztools`  
@@ -38,7 +39,7 @@ mac-tools/
     ├── App/                  # 入口、AppState、菜单栏
     ├── Core/                 # 设置、热键、权限、剪贴板存储
     ├── Features/             # Screenshot / OCR / Clipboard / Translate / Timestamp / ColorPicker / Settings
-    ├── Overlay/              # FloatingBall / ToolPanel / CommandPalette
+    ├── Overlay/              # FloatingBall / ToolPanel / CommandPalette / DynamicIsland
     ├── Services/             # AI、URLRouter、Pasteboard、UpdateChecker
     ├── Resources/Assets.xcassets
     ├── Info.plist
@@ -185,7 +186,42 @@ panel.isMovableByWindowBackground = false
 
 标注：箭头要大号实心三角 + 加粗箭身（见 `AnnotationCanvas`）。
 
-设置：`ScreenshotSettings.shared` + 设置页「截图」三分段（模式快捷键 / 效果 / 保存与动作）。
+  设置：`ScreenshotSettings.shared` + 设置页「截图」三分段（模式快捷键 / 效果 / 保存与动作）。
+
+---
+
+## 6.5 灵动岛
+
+入口：`DynamicIslandController`（`AppState.dynamicIsland`）。开关：设置「灵动岛」页 / 菜单栏 / `⌥I` / `ztools://island`。截图、OCR、取色时 `withBallHidden` 会一并藏岛。
+
+### 文件
+
+| 文件 | 职责 |
+|------|------|
+| `DynamicIslandGeometry.swift` | 刘海尺寸、`toolsHeight` / `contentHeight`、hitRect |
+| `DynamicIslandController.swift` | 无边框 NSPanel、鼠标策略、悬停展开、锁定、全屏隐藏 |
+| `DynamicIslandView.swift` | 外形 path、收起翼、展开 tab、动画 |
+| `IslandStatsStore.swift` | CPU / 内存 / 电池 / 网速 / 磁盘等本地采样 |
+| `IslandWing.swift` | 收起左右翼种类与绘制 |
+
+### 窗口铁律
+
+- **窗口尺寸固定**为最大展开高度（`expandedHeight + bouncePad`），只插值 `IslandSurface` 的宽高与圆角，不要 `setFrame` 做 morph。
+- 覆盖 `constrainFrameRect` 原样返回，否则 AppKit 会把窗口顶到刘海下方。
+- 贴顶：`y = screen.frame.maxY - height + 1`。
+- `NSHostingView.safeAreaInsets` 置空 + SwiftUI `.ignoresSafeArea()`。
+- 收起时 `ignoresMouseEvents = true`，用全局 `mouseMoved` 检测悬停再展开。
+- 外形：顶部与屏幕黑边一体（倒圆角），底部胶囊外凸。不要顶部切缺口的外凸圆角。
+
+### 交互
+
+- 收起：左右翼由 `SettingsStore.islandLeftWing` / `islandRightWing` 配置（日历、时钟、农历、进度、CPU/内存/磁盘/电池/网速）。天气等需第三方 API 的不做。
+- 展开 tab：工具（矮 `toolsHeight`）/ 应用 / 状态（高 `contentHeight`）。切 tab 用 spring 变高。
+- 锁定按钮：锁定后移出、点外部、Esc 都不收起。
+- 状态采样：`IslandStatsStore.start()` 必须 `DispatchQueue.main.async`，禁止在 SwiftUI view update 里同步写一堆 `@Published`。
+- 不要用 `IOBluetoothDevice.pairedDevices()`（易崩）。蓝牙配件电量只走 IOPS。
+
+设置页：`SettingsTab.island`，左右翼网格选择 + 清除。
 
 ---
 
@@ -193,7 +229,7 @@ panel.isMovableByWindowBackground = false
 
 - 全局热键：Carbon `HotKeyManager`（`@MainActor`），回调里回主线程。  
 - 默认方案：**⌥ + 单键**（两键），见 `SettingsStore.defaultHotKeys`。  
-- 方案版本：`currentHotKeysScheme`（当前为 3）。改默认布局时 **必须 +1**，否则老用户不会迁移。  
+- 方案版本：`currentHotKeysScheme`（当前为 **4**）。改默认布局时 **必须 +1**，否则老用户不会迁移。  
 - **坑**：`init` 里给属性赋值 **不会** 触发 `didSet`。迁移后要 **手动** `defaults.set(encoded, forKey:)`，不能只靠 `didSet { saveHotKeys() }`。  
 - 录制 UI：`HotKeyRecorderModel`（`ObservableObject`）持有 monitor，不要把 `NSEvent` monitor 放进 `@State`。  
 - 不要在 SwiftUI `onAppear` 里同步 `reloadHotKeys()`（易闪退）；修改后 `DispatchQueue.main.async { reloadHotKeys() }`。
@@ -204,7 +240,7 @@ panel.isMovableByWindowBackground = false
 |------|-----|
 | 选区/全屏/延时/窗口/上次/预设 | ⌥A / ⌥F / ⌥D / ⌥Z / ⌥X / ⌥G |
 | OCR / 剪贴板 / 翻译 / 时间戳 / 取色 | ⌥O / ⌥V / ⌥T / ⌥U / ⌥C |
-| 悬浮球 / 命令面板 / 划词译 | ⌥B / ⌥K / ⌥E |
+| 悬浮球 / 灵动岛 / 命令面板 / 划词译 | ⌥B / ⌥I / ⌥K / ⌥E |
 
 ---
 
@@ -217,6 +253,7 @@ open 'ztools://screenshot'
 open 'ztools://fullscreen'
 open 'ztools://translate?text=hello'
 open 'ztools://palette'
+open 'ztools://island'
 open 'ztools://settings'
 ```
 
@@ -239,6 +276,10 @@ open 'ztools://settings'
 | 截图发糊 | lockFocus 1x / 亚像素 | RetinaImage 路径；默认关阴影圆角 |
 | 悬浮球右键泄漏 | onAppear 重复 addMonitor | monitor 由 Controller 持有并成对 remove |
 | 菜单点了没反应 | global monitor 点在菜单上也 dismiss | 点击坐标在 menu/ball frame 内则忽略 |
+| 灵动岛贴不进刘海 | AppKit 改写 frame / 未覆盖 constrainFrameRect | 返回原 frameRect；贴顶 +1pt |
+| 灵动岛收起点不到 | 贴菜单栏时窗口收不到鼠标 | 收起 `ignoresMouseEvents`；全局 mouseMoved 展开 |
+| 点「状态」闪退 | view update 里同步采样 / IOBluetooth | stats.start 异步；电源信息只用 IOPS |
+| 快捷键改了岛不出现 | 跑了 build/ 旧副本 | 只用 `~/Applications/zTools.app` |
 
 ---
 
@@ -254,7 +295,7 @@ open 'ztools://settings'
 
 ## 11. 产品迭代方向（摘要）
 
-已完成大致：0.1 MVP → 0.2 标注/钉图/关于 → 0.3 剪贴板+翻译闭环+命令面板 → 0.4 URL/打包 → 0.5 对标 iShot 截图模式与 HUD → 0.6 笔记 Markdown。
+已完成大致：0.1 MVP → 0.2 标注/钉图/关于 → 0.3 剪贴板+翻译闭环+命令面板 → 0.4 URL/打包 → 0.5 对标 iShot 截图模式与 HUD → 0.6 笔记 Markdown → 灵动岛（开发中）。
 
 后续可考虑（未做或仅部分）：
 

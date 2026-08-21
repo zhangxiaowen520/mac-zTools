@@ -6,9 +6,6 @@ struct IslandAccessory: Identifiable, Equatable {
     let id: String
     let name: String
     var percent: Int?
-    var left: Int?
-    var right: Int?
-    var casePercent: Int?
 }
 
 @MainActor
@@ -45,6 +42,10 @@ final class IslandStatsStore: ObservableObject {
         Double(batteryPercent ?? 0) / 100
     }
 
+    var diskUsed: UInt64 {
+        diskTotal - min(diskFree, diskTotal)
+    }
+
     private var timer: Timer?
     private var lastCPU: host_cpu_load_info?
     private var lastNetIn: UInt64 = 0
@@ -76,11 +77,11 @@ final class IslandStatsStore: ObservableObject {
         let mem = Self.memory()
         memoryUsed = mem.used
         memoryTotal = mem.total
-        let bat = Self.battery()
-        batteryPercent = bat.percent
-        batteryCharging = bat.charging
-        batteryTime = bat.timeLabel
-        accessories = Self.iopsBluetoothAccessories()
+        let power = Self.readPowerSources()
+        batteryPercent = power.battery.percent
+        batteryCharging = power.battery.charging
+        batteryTime = power.battery.timeLabel
+        accessories = power.accessories
         let net = Self.linkBytes()
         let now = ProcessInfo.processInfo.systemUptime
         if lastNetAt > 0 {
@@ -138,11 +139,16 @@ final class IslandStatsStore: ObservableObject {
         return (min(used, total), total)
     }
 
-    nonisolated static func battery() -> (percent: Int?, charging: Bool, timeLabel: String) {
+    nonisolated static func readPowerSources() -> (
+        battery: (percent: Int?, charging: Bool, timeLabel: String),
+        accessories: [IslandAccessory]
+    ) {
         guard let snapshot = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
               let list = IOPSCopyPowerSourcesList(snapshot)?.takeRetainedValue() as NSArray?
-        else { return (nil, false, "—") }
+        else { return ((nil, false, "—"), []) }
 
+        var battery: (percent: Int?, charging: Bool, timeLabel: String) = (nil, false, "—")
+        var accessories: [IslandAccessory] = []
         for item in list {
             let source = item as AnyObject
             guard let desc = IOPSGetPowerSourceDescription(snapshot, source)?.takeUnretainedValue() as NSDictionary? else {
@@ -150,54 +156,27 @@ final class IslandStatsStore: ObservableObject {
             }
             let type = desc[kIOPSTypeKey] as? String
             let transport = desc[kIOPSTransportTypeKey] as? String
-            let isInternal = type == (kIOPSInternalBatteryType as String)
-                || transport == (kIOPSInternalType as String)
-            guard isInternal else { continue }
             let cur = intValue(desc[kIOPSCurrentCapacityKey]) ?? 0
             let cap = max(intValue(desc[kIOPSMaxCapacityKey]) ?? 100, 1)
             let percent = min(100, max(0, cur * 100 / cap))
-            let charging = (desc[kIOPSIsChargingKey] as? Bool) ?? false
-            let timeLabel: String = {
-                if charging {
-                    let mins = intValue(desc[kIOPSTimeToFullChargeKey]) ?? -1
-                    return formatBatteryMinutes(mins, prefix: "充满")
-                }
-                let mins = intValue(desc[kIOPSTimeToEmptyKey]) ?? -1
-                return formatBatteryMinutes(mins, prefix: "剩余")
-            }()
-            return (percent, charging, timeLabel)
-        }
-        return (nil, false, "—")
-    }
-
-    nonisolated static func iopsBluetoothAccessories() -> [IslandAccessory] {
-        guard let snapshot = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
-              let list = IOPSCopyPowerSourcesList(snapshot)?.takeRetainedValue() as NSArray?
-        else { return [] }
-
-        var result: [IslandAccessory] = []
-        for item in list {
-            let source = item as AnyObject
-            guard let desc = IOPSGetPowerSourceDescription(snapshot, source)?.takeUnretainedValue() as NSDictionary? else {
-                continue
-            }
-            let transport = desc[kIOPSTransportTypeKey] as? String
-            guard transport == "Bluetooth" else { continue }
-            let name = (desc[kIOPSNameKey] as? String) ?? "蓝牙设备"
-            let cur = intValue(desc[kIOPSCurrentCapacityKey]) ?? 0
-            let cap = max(intValue(desc[kIOPSMaxCapacityKey]) ?? 100, 1)
-            result.append(
-                IslandAccessory(
-                    id: name,
-                    name: name,
-                    percent: min(100, max(0, cur * 100 / cap)),
-                    left: nil,
-                    right: nil,
-                    casePercent: nil
+            let isInternal = type == (kIOPSInternalBatteryType as String)
+                || transport == (kIOPSInternalType as String)
+            if isInternal, battery.percent == nil {
+                let charging = (desc[kIOPSIsChargingKey] as? Bool) ?? false
+                let mins = charging
+                    ? (intValue(desc[kIOPSTimeToFullChargeKey]) ?? -1)
+                    : (intValue(desc[kIOPSTimeToEmptyKey]) ?? -1)
+                battery = (
+                    percent,
+                    charging,
+                    formatBatteryMinutes(mins, prefix: charging ? "充满" : "剩余")
                 )
-            )
+            } else if transport == "Bluetooth" {
+                let name = (desc[kIOPSNameKey] as? String) ?? "蓝牙设备"
+                accessories.append(IslandAccessory(id: name, name: name, percent: percent))
+            }
         }
-        return result
+        return (battery, accessories)
     }
 
     nonisolated static func intValue(_ value: Any?) -> Int? {

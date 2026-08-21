@@ -3,6 +3,7 @@ import SwiftUI
 
 enum SettingsTab: String, CaseIterable, Identifiable {
     case general
+    case island
     case screenshot
     case ai
     case shortcuts
@@ -14,6 +15,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .general: String(localized: "通用")
+        case .island: String(localized: "灵动岛")
         case .screenshot: String(localized: "截图")
         case .ai: String(localized: "AI 翻译")
         case .shortcuts: String(localized: "快捷键")
@@ -25,6 +27,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     var systemImage: String {
         switch self {
         case .general: "gearshape"
+        case .island: "capsule"
         case .screenshot: "camera.viewfinder"
         case .ai: "globe"
         case .shortcuts: "keyboard"
@@ -47,6 +50,7 @@ struct SettingsView: View {
     @State private var testingConnection = false
     @State private var connectionMessage: String?
     @ObservedObject private var updater = UpdateChecker.shared
+    @StateObject private var islandPreviewStats = IslandStatsStore()
 
     init() {
         _settings = ObservedObject(wrappedValue: AppState.shared.settings)
@@ -64,6 +68,7 @@ struct SettingsView: View {
             Group {
                 switch tab {
                 case .general: generalTab
+                case .island: islandTab
                 case .screenshot: screenshotTab
                 case .ai: aiTab
                 case .shortcuts: shortcutsTab
@@ -78,6 +83,13 @@ struct SettingsView: View {
         .frame(minWidth: 740, minHeight: 500)
         .task {
             await refreshPermissions()
+        }
+        .onChange(of: tab) { _, item in
+            if item == .island {
+                islandPreviewStats.start()
+            } else {
+                islandPreviewStats.stop()
+            }
         }
     }
 
@@ -102,14 +114,6 @@ struct SettingsView: View {
                 .onChange(of: settings.floatingBallSize) { _, size in
                     appState.floatingBall.updateSize(size)
                 }
-            }
-            Section("灵动岛") {
-                Toggle("显示灵动岛", isOn: $appState.showDynamicIsland)
-                Toggle("悬停展开", isOn: $settings.islandHoverExpand)
-                Toggle("全屏应用时自动隐藏", isOn: $settings.hideIslandInFullscreen)
-                Text("贴合刘海的胶囊入口。点击或悬停展开工具；Esc 或点外部收回。")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
             Section("笔记") {
                 HStack(alignment: .top) {
@@ -149,6 +153,66 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
+    }
+
+    private var islandTab: some View {
+        Form {
+            Section("显示") {
+                Toggle("显示灵动岛", isOn: $appState.showDynamicIsland)
+                Toggle("悬停展开", isOn: $settings.islandHoverExpand)
+                Toggle("全屏应用时自动隐藏", isOn: $settings.hideIslandInFullscreen)
+                Text("贴合刘海的胶囊入口。点击或悬停展开；Esc 或点外部收回。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Section {
+                wingPicker(title: "左侧图标", selection: $settings.islandLeftWing)
+            }
+            Section {
+                wingPicker(title: "右侧图标", selection: $settings.islandRightWing)
+            }
+        }
+        .formStyle(.grouped)
+    }
+
+    private func wingPicker(title: String, selection: Binding<IslandWingKind>) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text(title)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button("清除图标") { selection.wrappedValue = .none }
+                    .controlSize(.small)
+                    .disabled(selection.wrappedValue == .none)
+            }
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 10) {
+                ForEach(IslandWingKind.selectable) { kind in
+                    Button {
+                        selection.wrappedValue = kind
+                    } label: {
+                        VStack(spacing: 6) {
+                            TimelineView(.periodic(from: .now, by: 1)) { context in
+                                IslandWingView(kind: kind, date: context.date, stats: islandPreviewStats, compact: false)
+                                    .frame(height: 28)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 8)
+                            .background(Capsule(style: .continuous).fill(Color.black))
+                            .overlay(
+                                Capsule(style: .continuous)
+                                    .stroke(selection.wrappedValue == kind ? Color.accentColor : .clear, lineWidth: 2)
+                            )
+                            Text(kind.title)
+                                .font(.system(size: 11))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding(.vertical, 4)
     }
 
     private var screenshotTab: some View {

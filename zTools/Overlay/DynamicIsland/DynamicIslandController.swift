@@ -38,7 +38,6 @@ final class DynamicIslandController: NSObject {
 
     private let session = DynamicIslandSession()
     private var panel: IslandPanel?
-    private var hosting: IslandHostingView<DynamicIslandView>?
     private var hoverWorkItem: DispatchWorkItem?
     private var collapseWorkItem: DispatchWorkItem?
     private var suppressHoverUntilExit = false
@@ -56,8 +55,6 @@ final class DynamicIslandController: NSObject {
     func show() {
         if panel == nil {
             createPanel()
-        } else {
-            reposition()
         }
         startWatching()
         updateAppearance()
@@ -82,12 +79,6 @@ final class DynamicIslandController: NSObject {
     func collapse() {
         cancelPending()
         setExpanded(false)
-    }
-
-    func toggleExpanded() {
-        cancelPending()
-        suppressHoverUntilExit = true
-        setExpanded(!session.isExpanded)
     }
 
     private func createPanel() {
@@ -138,7 +129,6 @@ final class DynamicIslandController: NSObject {
             )
         }
         panel.contentView = hosting
-        self.hosting = hosting
         self.panel = panel
         place(panel, metrics: metrics, on: preferredScreen())
     }

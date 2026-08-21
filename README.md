@@ -177,7 +177,7 @@ mac-tools/
 
 - 版本号见 `zTools/Info.plist`  
 - 更新日志见应用内 **设置 → 关于**（`AppVersionInfo.changelog`）  
-- 当前主线：**0.6.x**（笔记 Markdown + 灵动岛开发中）
+- 当前主线：**0.7.0**（灵动岛）
 
 ---
 

@@ -289,13 +289,13 @@ open 'ztools://settings'
 - 更新说明：`AppVersionInfo.changelog`（设置 → 关于）  
 - 发版后同步改：`Info.plist`、`AppVersionInfo`、`README.md`、必要时 `currentHotKeysScheme`  
 
-当前版本以 Info.plist 为准（开发中约 0.6.x）。
+当前版本以 Info.plist 为准（**0.7.0**）。
 
 ---
 
 ## 11. 产品迭代方向（摘要）
 
-已完成大致：0.1 MVP → 0.2 标注/钉图/关于 → 0.3 剪贴板+翻译闭环+命令面板 → 0.4 URL/打包 → 0.5 对标 iShot 截图模式与 HUD → 0.6 笔记 Markdown → 灵动岛（开发中）。
+已完成大致：0.1 MVP → 0.2 标注/钉图/关于 → 0.3 剪贴板+翻译闭环+命令面板 → 0.4 URL/打包 → 0.5 对标 iShot 截图模式与 HUD → 0.6 笔记 Markdown → 0.7 灵动岛。
 
 后续可考虑（未做或仅部分）：
 

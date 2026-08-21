@@ -2,11 +2,11 @@ import Foundation
 
 enum AppVersionInfo {
     static var shortVersion: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.6.0"
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.7.0"
     }
 
     static var build: String {
-        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "6"
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "7"
     }
 
     static var displayVersion: String {
@@ -18,6 +18,17 @@ enum AppVersionInfo {
     static let copyright = "Copyright © 2026 zeno. All rights reserved."
 
     static let changelog: [(version: String, date: String, items: [String])] = [
+        (
+            "0.7.0",
+            "2026-08-21",
+            [
+                "灵动岛：贴合刘海胶囊，收起两侧可配日历/时钟/农历/进度/电池/CPU 等",
+                "展开：工具、系统应用列表、设备状态；锁定后保持展开",
+                "悬停展开、触控板震动、按 tab 变高；设置独立「灵动岛」页",
+                "快捷键 ⌥I；URL：ztools://island",
+                "钥匙串改用 Data Protection，ad-hoc 重建后权限更稳"
+            ]
+        ),
         (
             "0.6.0",
             "2026-08-19",
